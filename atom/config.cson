@@ -1,0 +1,16 @@
+"*":
+  core:
+    restorePreviousWindowsOnStart: "no"
+    telemetryConsent: "limited"
+    themes: [
+      "atom-dark-ui"
+      "atom-dark-syntax"
+    ]
+  editor:
+    fontSize: 12
+    showInvisibles: true
+    softWrap: true
+  "exception-reporting":
+    userId: "5d0122e8-2c47-4375-aa5e-c8a66533b37a"
+  welcome:
+    showOnStartup: false
