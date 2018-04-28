@@ -296,7 +296,7 @@ function install_vim_rc(){
   step "Installing vimrc ..."
 
   sync_repo "https://github.com/VundleVim/Vundle.vim.git" \
-            "$APP_PATH/vim/bundle/Vundle.vim"
+            "$APP_PATH/vim/plugins/Vundle.vim"
 
   lnif "$APP_PATH/vim" \
        "$HOME/.vim"

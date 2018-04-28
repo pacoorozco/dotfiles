@@ -96,5 +96,9 @@
 	default = simple
 [user]
 	name = Paco
-	email = paco.orozco@schibsted.com
+	email = paco@pacoorozco.info
 	name = Paco
+	name = Paco
+	signingkey = 04B064BC77CDA7AB
+[gpg]
+	program = gpg2
