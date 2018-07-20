@@ -25,28 +25,28 @@
 ##########################################################################
 # CONFIGURATION
 ##########################################################################
-# Backup_Sources: contains a list of folders to be backed up. They must be
+# backup_sources: contains a list of folders to be backed up. They must be
 # separated by spaces. If a folder doesn't exists a warning will be raised.
-# e.g.: Backup_Sources="/home/dir1/ /home/dir2/"
-Backup_Sources="/home/paco/"
+# e.g.: backup_sources="/home/dir1/ /home/dir2/"
+backup_sources=""
 
-# Backup_Destination: contains an existent folder where backups will be
+# backup_destination_dir: contains an existent folder where backups will be
 # kept. This is usually a mounted external disk.
-# e.g.: Backup_Destination=/mnt/backup_hd
-Backup_Destination=/media/paco/BACKUP_HD/BACKUP
+# e.g.: backup_destination_dir=/mnt/backup_hd
+backup_destination_dir=""
 
-# Exclusion_File: contains a list of files and folders to be excluded from 
+# exclude_patterns_file: contains a list of files and folders to be excluded from 
 # backup. You can create a file with common exclusions using this command:
 # wget https://raw.githubusercontent.com/rubo77/rsync-homedir-excludes/master/rsync-homedir-excludes.txt -O /tmp/ignorelist
 # e.g.: Excludes_File=/tmp/ignorelist
-Exclusion_File=/tmp/ignorelist
+exclude_patterns_file=""
 
 ##########################################################################
 # DO NOT MODIFY BEYOND THIS LINE
 ##########################################################################
 # Program name and version
-Program_Name=$(basename "$0")
-Program_Version='0.0.1'
+program_name=$(basename "$0")
+program_version='0.0.1'
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -55,40 +55,69 @@ set -o pipefail
 # Script exits immediately if tries to use an undeclared variables.
 set -o nounset
 # Uncomment this to enable debug
-set -o xtrace
+# set -o xtrace
 
 # Initialize variables in order to be used later
-Log_File=''
+log_file=""
 # 0 - Quiet, 1 - Errors, 2 - Warnings, 3 - Normal, 4 - Verbose, 9 - Debug
-Verbosity_Level=3
+verbosity_level=3
 
 ##########################################################################
 # Main function
 ##########################################################################
 function main () {
-	args_management "${@}"
+	args_management "$@"
 	check_requirements
 
-	#rotate_backup_targets
+  # Check supplied arguments
+  if [[ -z "${backup_sources}" ]]; then
+    error "No source folders has been defined to be backed up."
+    show_help
+    safe_exit 2
+  fi
 
-	for Source_Dir in ${Backup_Sources}
-	do
-		# Do rsync from the system into the latest snapshot (notice that
-		# rsync behaves like cp --remove-destination by default, so the
-		# destination is unlinked first.  If it were not so, this would
-		# copy over the other snapshot(s) too!
-    Destination="$(basename "${Source_Dir}" | tr 'a-z' 'A-Z')"
+  notice "Source folders are '${backup_sources}'"
 
-    mkdir -p "${Backup_Destination}/backup.0/${Destination}"
+  if [[ ! -d "${backup_destination_dir}" ]]; then
+    error "No backup destination_dir defined."
+    show_help
+    safe_exit 2
+  fi
 
-    rsync -va --delete --delete-excluded --exclude-from="${Exclusion_File}" \
-        "${Source_Dir}" "${Backup_Destination}/backup.0/${Destination}"
+  notice "Destination folder is ${backup_destination_dir}"
 
-    debug "Backup process for ${Source_Dir} has been completed."
-	done
+	rotate_backup_targets
+
+  local exclude_options=""
+  if [[ -n "${exclude_patterns_file}" ]]; then
+    notice "Using exclusions file ${exclude_patterns_file}"
+    exclude_options="--exclude-from=${exclude_patterns_file}"
+  fi
+
+	for source_dir in ${backup_sources}; do
+    notice "Going to next source ${source_dir}"
+    if [[ -d "${source_dir}" ]]; then
+      # Create destination_dir folder name, uppercased last part of source name
+      destination_dir="${backup_destination_dir}/backup.0/$(basename "${source_dir}" | tr '[:lower:]' '[:upper:]')"
+      debug "Creating backup destination folder: ${destination_dir}"
+      mkdir --parents "${destination_dir}"
+
+      # Do rsync from the system into the latest snapshot (notice that
+      # rsync behaves like cp --remove-destination_dir by default, so the
+      # destination_dir is unlinked first.  If it were not so, this would
+      # copy over the other snapshot(s) too!
+      debug "Doing rsync ${source_dir} to ${destination_dir}..."
+      rsync --quiet --archive --delete --delete-excluded "${exclude_options}" \
+            "${source_dir}" "${destination_dir}"
+
+      info "Backup process successfully completed for ${source_dir}"
+    else 
+      warning "Skipping source - invalid folder ${source_dir}"
+    fi
+  done
 
 	# Update the mtime of backup.0 to reflect the snapshot time
-	touch "${Backup_Destination}/backup.0"
+	touch "${backup_destination_dir}/backup.0"
 
 	safe_exit
 }
@@ -111,12 +140,12 @@ function _alert () {
   local color=""; local reset=""
 
   # Print message to log file. Debug messages are not printed.
-  if [[ -n "${Log_File}" ]] && [[ "${1}" != "debug" ]]; then
-    echo -e "$(date +"%d-%m-%Y %X") $(printf "[%s]" "${1}") ${_message}" >> "${Log_File}"
+  if [[ -n "${log_file}" ]] && [[ "${1}" != "debug" ]]; then
+    echo -e "$(date +"%d-%m-%Y %X") $(printf "[%s]" "${1}") ${_message}" >> "${log_file}"
   fi
 
   # Print to console depending of verbosity level
-  if [[ "${Verbosity_Level}" -ge "${LOG_LEVELS[${1}]}" ]]; then
+  if [[ "${verbosity_level}" -ge "${LOG_LEVELS[${1}]}" ]]; then
     echo -e "$(date +"%X") ${color}$(printf "[%s]" "${1}") ${_message}${reset}"
   fi
 }
@@ -146,66 +175,122 @@ function show_help () {
   local B; B=$(tput bold)  # Bold
   local N; N=$(tput sgr0)  # Normal
 
-  cat <<-"EOF"
-    ${B}Usage:${N}
+  cat <<-EOF
+    ${B}Usage${N}:
 
-    ${B}${Program_Name}${N} (v.${U}${Program_Version}${RU}) [options]...
-    
+    ${B}${program_name}${N} -b ${U}source_folder${RU} -t ${U}destination_folder${RU} [options]...
+
     ${B}Options:${N}
-    
-    ${B}-h${N}  Display this help message
-    
-    ${B}Examples:${N}
-    \$ ${Program_Name}
-    Minimal options. Will backup 
 
-	EOF
+    ${B}-h${N}  Display this help message
+
+    ${B}-v${N}  ${U}number${RU}
+    Set VERBOSITY level. Use 0 to 9, where default is 3
+
+    ${B}-d${N}  Enable debug information
+
+    ${B}-q${N}  Quiet
+
+    ${B}-e${N}  ${U}file${RU}
+    This option specifies a FILE that contains exclude patterns (one per line). Blank lines in
+    the file and lines starting with ’;’ or ’#’ are ignored. If FILE is -, the list will be
+    read from standard input.
+
+    ${B}-b${N}  ${U}source_folder${RU}
+    This is the path of folder to be backed up. You can use this option as many times as folders
+    you want to back up.
+
+    ${B}-t${N}  ${U}destination_folder${RU}
+    This is the path where snapshots will be kept.
+
+    ${B}Examples:${N}
+
+    \$ ${program_name} -b /home/user1 -b /home/user2 -t /mnt/backup_hd
+    Minimal options. Will backup ${U}/home/user1${RU} and ${U}/home/user2${RU} into ${U}/mnt/backup_hd${RU}
+
+EOF
+
 }
 
 # Manage arguments and configure variables according to it
 function args_management () {
-    local OPTIND=1
-    while getopts "hv:" OPTION; do
-        case "${OPTION}" in
-			h)
-        		usage
-        		safe_exit 1
-        		;;
-            v)
-      			if [[ ! ${OPTARG} =~ ^[0-9]+$ ]] ; then
-        			die -e 1 "Bad verbose level"
-      			else
-        			Verbosity_Level=${OPTARG}
-      			fi
-    		;;
-            '?')
-                show_help >&2
-                exit 1
-            ;;
-        esac
-    done
-    # Shift off the options and optional --.
-	shift "$((OPTIND - 1))"
+  local OPTIND=1
+  while getopts "hdqv:b:t:e:" OPTION; do
+    case "${OPTION}" in
+      h)
+        show_help
+        safe_exit 1
+        ;;
+      v)
+        if [[ ! ${OPTARG} =~ ^[0-9]+$ ]] ; then
+          die -e 1 "Bad verbose level"
+        else
+          verbosity_level=${OPTARG}
+        fi
+        ;;
+      d)
+        verbosity_level=${LOG_LEVELS['debug']}
+        ;;
+      q)
+        verbosity_level=0
+        ;;
+      b)
+        backup_sources+="${OPTARG} "
+        ;;
+      t)
+        backup_destination_dir=${OPTARG}
+        ;;
+      e)
+        exclude_patterns_file=${OPTARG}
+        [[ ! -r "${exclude_patterns_file}" ]] && die -e 2 "Invalid exclude patterns file"
+        ;;
+      '?')
+        show_help >&2
+        exit 1
+      ;;
+    esac
+  done
+  # Shift off the options and optional --.
+  shift "$((OPTIND - 1))"
 }
 
 # Check if requirements are satisfied
 function check_requirements () {
-    local REQUIRED_BINARIES="rsync"
+  local REQUIRED_BINARIES="rsync"
   
-    for Binary in $REQUIRED_BINARIES; do
-        [[ $(type -P "${Binary}") ]] && info "${Binary} is in PATH"  || die -e 127 "${Binary} is NOT in PATH."
-    done
+  for binary in $REQUIRED_BINARIES; do
+    if [[ $(type -P "${binary}") ]]; then
+      info "${binary} has been found in PATH"
+    else
+      die -e 127 "${binary} has NOT been found in PATH."
+    fi
+  done
 }
 
-# Rotating snapshots of Backup_Destination to keep 3 versions
+# Rotating snapshots of backup_destination_dir to keep 3 versions
 function rotate_backup_targets () {
-	[ -d "${Backup_Destination}/backup.3" ] && rm -rf "${Backup_Destination}/backup.3"
-	[ -d "${Backup_Destination}/backup.2" ] && mv "${Backup_Destination}/backup.2" "${Backup_Destination}/backup.3"
-	[ -d "${Backup_Destination}/backup.1" ] && mv "${Backup_Destination}/backup.1" "${Backup_Destination}/backup.2"
-	[ -d "${Backup_Destination}/backup.0" ] && cp -al "${Backup_Destination}/backup.0" "${Backup_Destination}/backup.1"
+	if [[ -d "${backup_destination_dir}/backup.3" ]]; then
+    debug "Deleting oldest snapshot ${backup_destination_dir}/backup.3"
+    rm --recursive --force "${backup_destination_dir}/backup.3"
+  fi
+
+	if [[ -d "${backup_destination_dir}/backup.2" ]]; then
+    debug "Rotating snapshot ${backup_destination_dir}/backup.2"
+    mv "${backup_destination_dir}/backup.2" "${backup_destination_dir}/backup.3"
+  fi
+
+  if [[ -d "${backup_destination_dir}/backup.1" ]]; then
+    debug "Rotating snapshot ${backup_destination_dir}/backup.1"
+    mv "${backup_destination_dir}/backup.1" "${backup_destination_dir}/backup.2"
+  fi
+
+	if [[ -d "${backup_destination_dir}/backup.0" ]]; then
+    debug "Rotating last created snapshot "
+    cp --archive --link "${backup_destination_dir}/backup.0" "${backup_destination_dir}/backup.1"
+  fi
 }
 
 ##########################################################################
 # Main code
 ##########################################################################
-main "${@}"
+main "$@"
