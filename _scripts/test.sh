@@ -9,5 +9,6 @@ set -o nounset
 # Uncomment this to enable debug
 # set -o xtrace
 
-shellcheck bin/*.sh
-shellcheck install.sh
+for script_to_test in bin/*.sh install.sh; do
+  shellcheck ${script_to_test} && echo "[OK] Linted: ${script_to_test}"
+done
