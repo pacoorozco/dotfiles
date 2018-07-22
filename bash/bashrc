@@ -171,7 +171,7 @@ source "$BASH_IT"/bash_it.sh
 #export ARCHFLAGS="-arch x86_64"
 # Pakus - Managed by bash-it plugin go
 #[ -d "/usr/local/go/bin" ] && export PATH="$PATH:/usr/local/go/bin"
-#[ -d "$HOME/go" ] && export GOPATH="$HOME/go"
+[ -d "$HOME/web/go" ] && export GOPATH="$HOME/web/go"
 #export GOROOT=${GOROOT:-$(go env | grep GOROOT | cut -d'"' -f2)}
 
 # Put you own environment private tokens in ~/.env_private
