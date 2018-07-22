@@ -1,2 +1,2 @@
 language: bash
-script: shellcheck install.sh
+script: _scripts/test.sh
