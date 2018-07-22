@@ -1,11 +1,33 @@
 #!/usr/bin/env bash
 
+
+##########################################################################
+# DO NOT MODIFY BEYOND THIS LINE
+##########################################################################
+# Program name and version
+program_name=$(basename "$0")
+program_version='0.0.1'
+
+# Script exits immediately if any command within it exits with a non-zero status
+set -o errexit
+# Script will catch the exit status of a previous command in a pipe.
+set -o pipefail
+# Script exits immediately if tries to use an undeclared variables.
+set -o nounset
+# Uncomment this to enable debug
+# set -o xtrace
+
+# Initialize variables in order to be used later
+log_file=""
+# 0 - Quiet, 1 - Errors, 2 - Warnings, 3 - Normal, 4 - Verbose, 9 - Debug
+verbosity_level=3
+
 ########## Params setup
 
 ## get the real path of install.sh
 SOURCE="${BASH_SOURCE[0]}"
 # resolve $SOURCE until the file is no longer a symlink
-while [ -L "$SOURCE" ]; do
+while [[ -L "$SOURCE" ]]; do
   APP_PATH="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
   SOURCE="$(readlink "$SOURCE")"
   # if $SOURCE was a relative symlink, we need to resolve it relative to the path
@@ -14,54 +36,81 @@ while [ -L "$SOURCE" ]; do
 done
 APP_PATH="$( cd -P "$( dirname "$SOURCE" )" && pwd )"
 
-# color params
-dot_color_none="\033[0m"
-dot_color_dark="\033[0;30m"
-dot_color_dark_light="\033[1;30m"
-dot_color_red="\033[0;31m"
-dot_color_red_light="\033[1;31m"
-dot_color_green="\033[0;32m"
-dot_color_green_light="\033[1;32m"
-dot_color_yellow="\033[0;33m"
-dot_color_yellow_light="\033[1;33m"
-dot_color_blue="\033[0;34m"
-dot_color_blue_light="\033[1;34m"
-dot_color_purple="\033[0;35m"
-dot_color_purple_light="\033[1;35m"
-dot_color_cyan="\033[0;36m"
-dot_color_cyan_light="\033[1;36m"
-dot_color_gray="\033[0;37m"
-dot_color_gray_light="\033[1;37m"
-
-########## Basics setup
-function msg(){
-  printf '%b\n' "$*$dot_color_none" >&2
-}
-function prompt(){
-  printf '%b' "$dot_color_purple[+] $*$dot_color_none "
-}
-function step(){
-  msg "\n$dot_color_yellow[→] $*"
-}
-function info(){
-  msg "$dot_color_cyan[>] $*"
-}
-function success(){
-  msg "$dot_color_green[✓] $*"
-}
-function error(){
-  msg "$dot_color_red_light[✗] $*"
-}
-function tip(){
-  msg "$dot_color_red_light[!] $*"
+##########################################################################
+# Functions
+##########################################################################
+# Do every cleanup task before exit.
+function safe_exit () {
+  local _error_code=${1:-0}
+  exit "${_error_code}"
 }
 
-function is_file_exists(){
-  [[ -e "$1" ]] && return 0 || return 1
+# Print a message, do format and treat verbose level
+declare -A LOG_LEVELS
+LOG_LEVELS=([error]=1 [warning]=2 [notice]=3 [info]=4 [debug]=9)
+
+function _alert () {
+  # TODO: This variables are reserved for future use
+  local color=""; local reset=""
+
+  # Print message to log file. Debug messages are not printed.
+  if [[ -n "${log_file}" ]] && [[ "${1}" != "debug" ]]; then
+    echo -e "$(date +"%d-%m-%Y %X") $(printf "[%s]" "${1}") ${_message}" >> "${log_file}"
+  fi
+
+  # Print to console depending of verbosity level
+  if [[ "${verbosity_level}" -ge "${LOG_LEVELS[${1}]}" ]]; then
+    echo -e "$(date +"%X") ${color}$(printf "[%s]" "${1}") ${_message}${reset}"
+  fi
 }
-function is_dir_exists(){
-  [[ -d "$1" ]] && return 0 || return 1
+
+# Print a message and exit
+function die () {
+  local _error_code=0
+  [[ "${1}" = "-e" ]] && shift; _error_code=${1}; shift
+  error "${*} Exiting."
+  safe_exit "${_error_code}"
 }
+
+# Deal with severity level messages
+function error()    { local _message="${*}"; _alert error >&2; }
+function warning()  { local _message="${*}"; _alert warning >&2; }
+function notice()   { local _message="${*}"; _alert notice; }
+function info()     { local _message="${*}"; _alert info; }
+function debug()    { local _message="${*}"; _alert debug; }
+function input()    { local _message="${*}"; _alert info; }
+
+# Usage info
+function show_help () {
+  # Variables for formatting
+  local U; U=$(tput smul)  # Underline
+  local RU; RU=$(tput rmul) # Remove underline
+  local B; B=$(tput bold)  # Bold
+  local N; N=$(tput sgr0)  # Normal
+
+  cat <<-EOF
+    ${B}Usage${N}:
+
+    ${B}${program_name}${N} <task>[ ${U}taskFoo${RU} ${U}taskBar${RU} ...]
+
+    ${B}Tasks:${N}
+
+    ${B}aws_credentials${N}   Configure AWS credentials in .aws/credentials
+    ${B}atom_cfg${N}          Configure ATOM editor
+    ${B}bash_rc${N}           Install & configure bash-it
+    ${B}bin${N}               Make ~/bin accessible
+    ${B}editorconfig${N}      Configure .editorconfig
+    ${B}env_private${N}       Configure TOKENS in environment variables (needs tokens/TOKENS in pass)
+    ${B}fonts${N}             Install & configure fonts
+    ${B}git_config${N}        Configure git
+    ${B}vim_rc${N}            Configure Vim
+    ${B}zsh_rc${N}            Install & configure oh-my-zsh
+
+    Version: ${program_version}
+
+EOF
+}
+
 function is_program_exists(){
   if type "$1" &>/dev/null; then
     return 0
@@ -69,57 +118,55 @@ function is_program_exists(){
     return 1
   fi;
 }
-function must_file_exists(){
-  for file in $@; do
-    if ( ! is_file_exists $file ); then
-      error "You must have file *$file*"
-      exit
+
+# Check file exists or die
+function must_file_exists () {
+  for file in "$@"; do
+    if [[ ! -e "$file" ]]; then
+      die -e 1 "You must have file *${file}*"
     fi;
   done;
 }
-function better_program_exists_one(){
+
+# Check if a program exists, if not recommends you to install it
+function better_program_exists_one () {
   local exists="no"
-  for program in $@; do
+  for program in "$@"; do
     if ( is_program_exists "$program" ); then
       exists="yes"
       break
     fi;
   done;
   if [[ "$exists" = "no" ]]; then
-    tip "Maybe you can take full use of this by installing one of ($*)~"
+    notice "Maybe you can take full use of this by installing one of ($*)~"
   fi;
 }
-function must_program_exists(){
-  for program in $@; do
+
+# Check if a program exists or die
+function must_program_exists() {
+  for program in "$@"; do
     if ( ! is_program_exists "$program" ); then
-      error "You must have *$program* installed!"
-      exit
+      die -e 1 "You must have *$program* installed!"
     fi;
   done;
 }
 
-function is_platform(){
-  [[ `uname` = "$1" ]] && return 0 || return 1
-}
-function is_linux(){
-  ( is_platform Linux ) && return 0 || return 1
-}
-function is_mac(){
-  ( is_platform Darwin ) && return 0 || return 1
+# Check if platform is Linux
+function is_linux () {
+  [[ "$(uname)" = "Linux" ]] && return 0 || return 1
 }
 
+# Link a file if exists
 function lnif(){
   if [ -e "$1" ]; then
     info "Linking $1 to $2"
-    if ( ! is_dir_exists `dirname "$2"` ); then
-      mkdir -p `dirname "$2"`
-    fi;
     rm -rf "$2"
     ln -s "$1" "$2"
-  fi;
+  fi
 }
 
-function sync_repo(){
+# Clone a github repo
+function sync_repo() {
 
   must_program_exists "git"
 
@@ -128,97 +175,73 @@ function sync_repo(){
   local repo_branch=${3:-master}
   local repo_name=${1:19} # length of (https://github.com/)
 
-  if ( ! is_dir_exists "$repo_path" ); then
+  if [[ ! -d "$repo_path" ]]; then
     info "Cloning $repo_name ..."
     mkdir -p "$repo_path"
     git clone --depth 1 --branch "$repo_branch" "$repo_uri" "$repo_path"
-    success "Successfully cloned $repo_name."
+    notice "noticefully cloned $repo_name."
   else
     info "Updating $repo_name ..."
     cd "$repo_path" && git pull origin "$repo_branch"
-    success "Successfully updated $repo_name."
-  fi;
+    notice "noticefully updated $repo_name."
+  fi
 
-  if ( is_file_exists "$repo_path/.gitmodules" ); then
+  if [[ -e "$repo_path/.gitmodules" ]]; then
     info "Updating $repo_name submodules ..."
     cd "$repo_path"
     git submodule update --init --recursive
-    success "Successfully updated $repo_name submodules."
-  fi;
+    notice "noticefully updated $repo_name submodules."
+  fi
 }
 
-function util_must_python_pipx_exists(){
-  if ( ! is_program_exists pip ) && ( ! is_program_exists pip2 ) && ( ! is_program_exists pip3 ); then
-    error "You must have installed pip or pip2 or pip3 for installing python packages."
-    exit
-  fi;
-}
-
-########## Steps setup
-
-function usage(){
-  echo
-  echo 'Usage: install.sh <task>[ taskFoo taskBar ...]'
-  echo
-  echo 'Tasks:'
-  printf "$dot_color_green\n"
-  echo '    - aws_credentials'
-  echo '    - atom_cfg'
-  echo '    - bash_rc'
-  echo '    - bin'
-  echo '    - editorconfig'
-  echo '    - env_private'
-  echo '    - fonts_source_code_pro'
-  echo '    - git_config'
-  echo '    - vim_rc'
-  echo '    - zsh_rc'
-  printf "$dot_color_none\n"
-}
-
+# Configure ATOM
 function install_atom_cfg(){
 
-  step "Installing ATOM configuration ..."
+  notice "Installing ATOM configuration ..."
 
   lnif "$APP_PATH/atom/config.cson" \
        "$HOME/.atom/config.cson"
 
-  success "Successfully installed ATOM configuration."
+  notice "noticefully installed ATOM configuration."
 }
 
+# Configure bin scripts
 function install_bin(){
 
-  step "Installing useful small scripts ..."
+  notice "Installing useful small scripts ..."
 
   local source_path="$APP_PATH/bin"
 
-  for bin in `ls -p $source_path | grep -v /`; do
-    lnif "$source_path/$bin" "$HOME/bin/$bin"
-  done;
+  for bin in $source_path/*; do
+    local script_name
+    script_name=$(basename "$bin")
+    lnif "$bin" "$HOME/bin/$script_name"
+  done
 
-  success "Successfully installed useful scripts."
+  notice "noticefully installed useful scripts."
 }
 
+# Configure editorconfig
 function install_editorconfig(){
 
-  step "Installing editorconfig ..."
+  notice "Installing editorconfig ..."
 
   lnif "$APP_PATH/editorconfig/editorconfig" \
        "$HOME/.editorconfig"
 
-  tip "Maybe you should install editorconfig plugin for vim or sublime"
-  success "Successfully installed editorconfig."
+  notice "Maybe you should install editorconfig plugin for vim or sublime"
+  notice "noticefully installed editorconfig."
 }
 
-function install_fonts_source_code_pro(){
+function install_fonts(){
 
-  if ( ! is_mac ) && ( ! is_linux ); then
-    error "This support *Linux* and *Mac* only"
-    exit
+  if ( ! is_linux ); then
+    die -e 2 "This support *Linux* only"
   fi;
 
   must_program_exists "git"
 
-  step "Installing font Source Code Pro ..."
+  notice "Installing font Source Code Pro ..."
 
   sync_repo "https://github.com/adobe-fonts/source-code-pro.git" \
             "$APP_PATH/.cache/source-code-pro" \
@@ -231,69 +254,63 @@ function install_fonts_source_code_pro(){
 
   local fonts_dir
 
-  if ( is_mac ); then
-    # MacOS
-    fonts_dir="$HOME/Library/Fonts"
-  else
-    # Linux
-    fonts_dir="$HOME/.fonts"
-    mkdir -p $fonts_dir
-  fi
-
+  # Linux
+  fonts_dir="$HOME/.fonts"
+  mkdir -p "$fonts_dir"
+ 
   # Copy all fonts to user fonts directory
-  eval $find_command | xargs -0 -I % cp "%" "$fonts_dir/"
+  eval "$find_command" | xargs -0 -I % cp "%" "$fonts_dir/"
 
   # Reset font cache on Linux
-  if [[ -n `which fc-cache` ]]; then
-    fc-cache -f $fonts_dir
+  if [[ -n "$(which fc-cache)" ]]; then
+    fc-cache -f "$fonts_dir"
   fi
 
-  success "Successfully installed Source Code Pro font."
+  notice "noticefully installed Source Code Pro font."
 }
 
+# Configure git config
 function install_git_config(){
 
   must_program_exists "git"
 
-  step "Installing gitconfig ..."
+  notice "Installing gitconfig..."
 
   lnif "$APP_PATH/git/gitconfig" \
        "$HOME/.gitconfig"
 
   info "Now config your name and email for git."
 
-  local user_now=`whoami`
+  local user_now
+  user_now="$(whoami)"
 
-  prompt "What's your git username? ($user_now) "
+  input "What's your git username? ($user_now) "
 
   local user_name
-  read user_name
+  read -r user_name
   if [ "$user_name" = "" ]; then
-    user_name=$user_now
-  fi;
-  git config --global user.name $user_name
+    user_name="$user_now"
+  fi
+  git config --global user.name "$user_name"
 
-  prompt "What's your git email? ($user_name@example.com) "
+  input "What's your git email? ($user_name@example.com) "
 
   local user_email
-  read user_email
+  read -r user_email
   if [ "$user_email" = "" ]; then
-    user_email=$user_now@example.com
-  fi;
-  git config --global user.email $user_email
+    user_email="${user_now}@example.com"
+  fi
+  git config --global user.email "$user_email"
 
-  if ( is_mac ); then
-    git config --global credential.helper osxkeychain
-  fi;
-
-  success "Successfully installed gitconfig."
+  notice "noticefully installed gitconfig."
 }
 
-function install_vim_rc(){
+# Configure vim_rc with Vundle and plugins
+function install_vim_rc() {
 
   must_program_exists "vim"
 
-  step "Installing vimrc ..."
+  notice "Installing vimrc ..."
 
   sync_repo "https://github.com/VundleVim/Vundle.vim.git" \
             "$APP_PATH/vim/plugins/Vundle.vim"
@@ -305,9 +322,9 @@ function install_vim_rc(){
 
   vim +PlugInstall +qall
 
-  success "Successfully installed vimrc."
+  notice "noticefully installed vimrc."
 
-  success "You can add your own configs to ~/.vimrc.local, vim will source them automatically"
+  notice "You can add your own configs to ~/.vimrc.local, vim will source them automatically"
 }
 
 function util_append_dotvim_group(){
@@ -315,7 +332,7 @@ function util_append_dotvim_group(){
   local conf="$HOME/.vimrc.plugins.before"
 
   if ! grep -iE "^[ \t]*let[ \t]+g:dotvim_groups[ \t]*=[ \t]*\[.+]" "$conf" &>/dev/null ; then
-    printf "\nlet g:dotvim_groups = ['$group']" >> "$conf"
+    printf "\nlet g:dotvim_groups = ['%s']" "$group" >> "$conf"
   elif ! grep -iE "'$group'" "$conf" &>/dev/null; then
     sed -e "s/]/, '$group']/" "$conf" | tee "$conf" &>/dev/null
     if grep -iE "\[[ \t]*," "$conf" &>/dev/null; then
@@ -324,11 +341,30 @@ function util_append_dotvim_group(){
   fi;
 }
 
+# Try to change current shell using chsh
+function change_shell() {
+  local new_shell="$1"
+  local TEST_CURRENT_SHELL
+  TEST_CURRENT_SHELL=$(expr "$SHELL" : '.*/\(.*\)')
+  if [ "$TEST_CURRENT_SHELL" != "$new_shell" ]; then
+    # If this platform provides a "chsh" command (not Cygwin), do it, man!
+    if hash chsh >/dev/null 2>&1; then
+      info "Time to change your default shell to bash!"
+      chsh -s "$(grep "/${new_shell}$" /etc/shells | tail -1)"
+    # Else, suggest the user do so manually.
+    else
+      error "I can't change your shell automatically because this system does not have chsh."
+      error "Please manually change your default shell to ${new_shell}!"
+    fi
+  fi
+}
+
+# Configure bash_rc with bash-it and plugins
 function install_bash_rc(){
 
   must_program_exists "bash"
 
-  step "Installing bashrc ..."
+  notice "Installing bashrc..."
 
   sync_repo "https://github.com/Bash-it/bash-it.git" \
             "$APP_PATH/bash/bash_it"
@@ -340,32 +376,20 @@ function install_bash_rc(){
   lnif "$APP_PATH/bash/bashrc" \
        "$HOME/.bashrc"
 
-  # borrowed from oh-my-zsh install script
-  # If this user's login shell is not already "bash", attempt to switch.
-  local TEST_CURRENT_SHELL=$(expr "$SHELL" : '.*/\(.*\)')
-  if [ "$TEST_CURRENT_SHELL" != "bash" ]; then
-    # If this platform provides a "chsh" command (not Cygwin), do it, man!
-    if hash chsh >/dev/null 2>&1; then
-      info "Time to change your default shell to bash!"
-      chsh -s $(grep /bash$ /etc/shells | tail -1)
-    # Else, suggest the user do so manually.
-    else
-      error "I can't change your shell automatically because this system does not have chsh."
-      error "Please manually change your default shell to bash!"
-    fi
-  fi
+  change_shell "bash"
 
-  success "Successfully installed bash and bash-it."
-  tip "You can add your own configs to ~/.bashrc.local , bash will source them automatically"
+  notice "noticefully installed bash and bash-it."
+  notice "You can add your own configs to ~/.bashrc.local , bash will source them automatically"
 
-  success "Please open a new bash terminal to make configs go into effect."
+  notice "Please open a new bash terminal to make configs go into effect."
 }
 
-function install_zsh_rc(){
+# Configure zsh_rc with oh-my-zsh and plugins
+function install_zsh_rc() {
 
   must_program_exists "zsh"
 
-  step "Installing zshrc ..."
+  notice "Installing zshrc ..."
 
   sync_repo "https://github.com/robbyrussell/oh-my-zsh.git" \
             "$APP_PATH/zsh/oh-my-zsh"
@@ -385,64 +409,59 @@ function install_zsh_rc(){
   lnif "$APP_PATH/zsh/zshrc.local" \
        "$HOME/.zshrc.local"
 
-  # borrowed from oh-my-zsh install script
-  # If this user's login shell is not already "zsh", attempt to switch.
-  local TEST_CURRENT_SHELL=$(expr "$SHELL" : '.*/\(.*\)')
-  if [ "$TEST_CURRENT_SHELL" != "zsh" ]; then
-    # If this platform provides a "chsh" command (not Cygwin), do it, man!
-    if hash chsh >/dev/null 2>&1; then
-      info "Time to change your default shell to zsh!"
-      chsh -s $(grep /zsh$ /etc/shells | tail -1)
-    # Else, suggest the user do so manually.
-    else
-      error "I can't change your shell automatically because this system does not have chsh."
-      error "Please manually change your default shell to zsh!"
-    fi
-  fi
+  change_shell "zsh"
 
-  success "Successfully installed zsh and oh-my-zsh."
-  tip "You can add your own configs to ~/.zshrc.local , zsh will source them automatically"
+  notice "noticefully installed zsh and oh-my-zsh."
+  notice "You can add your own configs to ~/.zshrc.local , zsh will source them automatically"
 
-  success "Please open a new zsh terminal to make configs go into effect."
+  notice "Please open a new zsh terminal to make configs go into effect."
 }
 
-function install_env_private(){
+# Configure private TOKENS into environment variables
+function install_env_private() {
 
   must_program_exists "pass"
 
-  step "Installing environment private tokens ..."
+  notice "Installing environment private tokens ..."
   info "You will be asked for decryption key!"
 
   pass show tokens/ENV_TOKENS > "$HOME/.env_private"
 
-  success "Successfully installed environment private tokens"
-  success "Please open a new terminal to make configs go into effect."
+  notice "noticefully installed environment private tokens"
+  notice "Please open a new terminal to make configs go into effect."
 }
 
-function install_aws_credentials(){
+# Configure AWS credentials
+function install_aws_credentials() {
 
   must_program_exists "pass"
 
-  step "Installing AWS credentials ..."
+  notice "Installing AWS credentials ..."
   info "You will be asked for decryption key!"
 
   pass show tokens/AWS_CREDENTIALS > "$HOME/.aws/credentials"
 
-  success "Successfully installed AWS_CREDENTIALS"
-  success "Please open a new terminal to make configs go into effect."
+  notice "noticefully installed AWS_CREDENTIALS"
+  notice "Please open a new terminal to make configs go into effect."
 }
 
-if [ $# = 0 ]; then
-  usage
-else
-  for arg in $@; do
-    case $arg in
+##########################################################################
+# Main function
+##########################################################################
+function main () {
+  if [[ $# = 0 ]]; then
+    show_help
+    safe_exit 2
+  fi
+
+  for arg in "$@"; do
+    case "$arg" in
       atom_cfg)
         install_atom_cfg
         ;;
-        aws_credentials)
-          install_aws_credentials
-          ;;
+      aws_credentials)
+        install_aws_credentials
+        ;;
       bin)
         install_bin
         ;;
@@ -455,8 +474,8 @@ else
       env_private)
           install_env_private
           ;;
-      fonts_source_code_pro)
-        install_fonts_source_code_pro
+      fonts)
+        install_fonts
         ;;
       git_config)
         install_git_config
@@ -468,10 +487,15 @@ else
         install_zsh_rc
         ;;
       *)
-        echo
         error "Invalid params $arg"
-        usage
+        show_help
+        safe_exit 2
         ;;
-    esac;
-  done;
-fi;
+    esac
+  done
+}
+
+##########################################################################
+# Main code
+##########################################################################
+main "$@"
