@@ -89,6 +89,11 @@ function main () {
 	rotate_backup_targets
 
   local exclude_options=""
+  if [[ -z "${exclude_patterns_file}" ]] \
+     && [[ -r "$HOME/.excludes_from_backup" ]]; then
+    exclude_patterns_file=$HOME/.excludes_from_backup
+  fi
+
   if [[ -n "${exclude_patterns_file}" ]]; then
     notice "Using exclusions file ${exclude_patterns_file}"
     exclude_options="--exclude-from=${exclude_patterns_file}"
@@ -107,7 +112,7 @@ function main () {
       # destination_dir is unlinked first.  If it were not so, this would
       # copy over the other snapshot(s) too!
       debug "Doing rsync ${source_dir} to ${destination_dir}..."
-      rsync --quiet --archive --delete --delete-excluded "${exclude_options}" \
+      rsync --verbose --progress --archive --delete --delete-excluded "${exclude_options}" \
             "${source_dir}" "${destination_dir}"
 
       info "Backup process successfully completed for ${source_dir}"
@@ -166,6 +171,10 @@ function info ()      { local _message="${*}"; _alert info; }
 function debug ()     { local _message="${*}"; _alert debug; }
 function input()      { local _message="${*}"; _alert info; }
 
+# Show program version
+function show_version () {
+  echo "${program_name} v${program_version}"
+}
 
 # Usage info
 function show_help () {
@@ -184,6 +193,8 @@ function show_help () {
 
     ${B}-h${N}  Display this help message
 
+    ${B}-V${N}  Show version information
+
     ${B}-v${N}  ${U}number${RU}
     Set VERBOSITY level. Use 0 to 9, where default is 3
 
@@ -194,14 +205,14 @@ function show_help () {
     ${B}-e${N}  ${U}file${RU}
     This option specifies a FILE that contains exclude patterns (one per line). Blank lines in
     the file and lines starting with ’;’ or ’#’ are ignored. If FILE is -, the list will be
-    read from standard input.
+    read from standard input. It will use ${U}\$HOME/.excludes_from_backup${RU} otherwise.
 
     ${B}-b${N}  ${U}source_folder${RU}
-    This is the path of folder to be backed up. You can use this option as many times as folders
-    you want to back up.
+    Mandatory. This is the path of folder to be backed up. You can use this option as many times
+    as folders you want to back up.
 
     ${B}-t${N}  ${U}destination_folder${RU}
-    This is the path where snapshots will be kept.
+    Mandatory. This is the path where snapshots will be kept.
 
     ${B}Examples:${N}
 
@@ -215,11 +226,15 @@ EOF
 # Manage arguments and configure variables according to it
 function args_management () {
   local OPTIND=1
-  while getopts "hdqv:b:t:e:" OPTION; do
+  while getopts "hdqVv:b:t:e:" OPTION; do
     case "${OPTION}" in
       h)
         show_help
         safe_exit 1
+        ;;
+      V)
+        show_version
+        safe_exit 0
         ;;
       v)
         if [[ ! ${OPTARG} =~ ^[0-9]+$ ]] ; then

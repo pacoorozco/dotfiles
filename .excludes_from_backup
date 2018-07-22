@@ -35,7 +35,7 @@
 #*Popcorntime*
 #/.aMule
 #/Scribus
-#/VirtualBox*
+/VirtualBox*
 #
 ## Add Game Folders here:
 #
@@ -45,6 +45,8 @@
 #Steam
 #.minecraft
 #.PlayOnLinux
+/snap
+/Dropbox
 
 
 ################################################
