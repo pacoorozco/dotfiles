@@ -101,6 +101,7 @@ function show_help () {
     ${B}bin${N}               Make ~/bin accessible
     ${B}editorconfig${N}      Configure .editorconfig
     ${B}env_private${N}       Configure TOKENS in environment variables (needs tokens/TOKENS in pass)
+    ${B}defaults${N}          Configure some defaults
     ${B}fonts${N}             Install & configure fonts
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
@@ -360,7 +361,7 @@ function change_shell() {
 }
 
 # Configure bash_rc with bash-it and plugins
-function install_bash_rc(){
+function install_bash_rc() {
 
   must_program_exists "bash"
 
@@ -427,7 +428,7 @@ function install_env_private() {
 
   pass show tokens/ENV_TOKENS > "$HOME/.env_private"
 
-  notice "noticefully installed environment private tokens"
+  notice "Successfully installed environment private tokens"
   notice "Please open a new terminal to make configs go into effect."
 }
 
@@ -441,8 +442,18 @@ function install_aws_credentials() {
 
   pass show tokens/AWS_CREDENTIALS > "$HOME/.aws/credentials"
 
-  notice "noticefully installed AWS_CREDENTIALS"
+  notice "Successfully installed AWS_CREDENTIALS"
   notice "Please open a new terminal to make configs go into effect."
+}
+
+# Configure some defaults
+function configure_defaults() {
+  notice "Configuring some defaults ..."
+
+  lnif "$APP_PATH/defaults/excludes_from_backup" \
+       "$HOME/.excludes_from_backup"
+
+  notice "Successfully configured defaults"
 }
 
 ##########################################################################
@@ -473,6 +484,9 @@ function main () {
         ;;
       env_private)
           install_env_private
+          ;;
+      defaults)
+          configure_defaults
           ;;
       fonts)
         install_fonts
