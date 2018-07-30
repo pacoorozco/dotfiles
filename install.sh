@@ -96,7 +96,6 @@ function show_help () {
     ${B}Tasks:${N}
 
     ${B}aws_credentials${N}   Configure AWS credentials in .aws/credentials
-    ${B}atom_cfg${N}          Configure ATOM editor
     ${B}bash_rc${N}           Install & configure bash-it
     ${B}bin${N}               Make ~/bin accessible
     ${B}editorconfig${N}      Configure .editorconfig
@@ -194,17 +193,6 @@ function sync_repo() {
     git submodule update --init --recursive
     notice "noticefully updated $repo_name submodules."
   fi
-}
-
-# Configure ATOM
-function install_atom_cfg(){
-
-  notice "Installing ATOM configuration ..."
-
-  lnif "$APP_PATH/atom/config.cson" \
-       "$HOME/.atom/config.cson"
-
-  notice "noticefully installed ATOM configuration."
 }
 
 # Configure GNUPG
@@ -482,9 +470,6 @@ function main () {
 
   for arg in "$@"; do
     case "$arg" in
-      atom_cfg)
-        install_atom_cfg
-        ;;
       aws_credentials)
         install_aws_credentials
         ;;
