@@ -6,7 +6,7 @@
 ##########################################################################
 # Program name and version
 program_name=$(basename "$0")
-program_version='0.0.1'
+program_version='0.0.2'
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -18,7 +18,7 @@ set -o nounset
 # set -o xtrace
 
 # Initialize variables in order to be used later
-log_file=""
+
 # 0 - Quiet, 1 - Errors, 2 - Warnings, 3 - Normal, 4 - Verbose, 9 - Debug
 verbosity_level=3
 
@@ -53,11 +53,6 @@ function _alert () {
   # TODO: This variables are reserved for future use
   local color=""; local reset=""
 
-  # Print message to log file. Debug messages are not printed.
-  if [[ -n "${log_file}" ]] && [[ "${1}" != "debug" ]]; then
-    echo -e "$(date +"%d-%m-%Y %X") $(printf "[%s]" "${1}") ${_message}" >> "${log_file}"
-  fi
-
   # Print to console depending of verbosity level
   if [[ "${verbosity_level}" -ge "${LOG_LEVELS[${1}]}" ]]; then
     echo -e "$(date +"%X") ${color}$(printf "[%s]" "${1}") ${_message}${reset}"
@@ -78,7 +73,7 @@ function warning()  { local _message="${*}"; _alert warning >&2; }
 function notice()   { local _message="${*}"; _alert notice; }
 function info()     { local _message="${*}"; _alert info; }
 function debug()    { local _message="${*}"; _alert debug; }
-function input()    { local _message="${*}"; _alert info; }
+function input()    { local _message="${*}"; printf "%s " "${_message}"; }
 
 # Usage info
 function show_help () {
@@ -106,17 +101,21 @@ function show_help () {
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
 
+    ${B}all${N}               Install all dotfiles & configuration
+
     Version: ${program_version}
 
 EOF
 }
 
-function is_program_exists(){
-  if type "$1" &>/dev/null; then
-    return 0
-  else
-    return 1
-  fi;
+# Check if a program is installed
+function program_is_installed() {
+  # set to 1 initially
+  local return_=1
+  # set to 0 if not found
+  type "$1" >/dev/null 2>&1 && { return_=0; }
+  # return value
+  return "$return_"
 }
 
 # Check file exists or die
@@ -124,31 +123,31 @@ function must_file_exists () {
   for file in "$@"; do
     if [[ ! -e "$file" ]]; then
       die -e 1 "You must have file *${file}*"
-    fi;
-  done;
+    fi
+  done
 }
 
 # Check if a program exists, if not recommends you to install it
 function better_program_exists_one () {
-  local exists="no"
+  local exists=0
   for program in "$@"; do
-    if ( is_program_exists "$program" ); then
-      exists="yes"
+    if ( program_is_installed "$program" ); then
+      exists=1
       break
-    fi;
-  done;
-  if [[ "$exists" = "no" ]]; then
+    fi
+  done
+  if [[ "$exists" = "0" ]]; then
     notice "Maybe you can take full use of this by installing one of ($*)~"
-  fi;
+  fi
 }
 
 # Check if a program exists or die
 function must_program_exists() {
   for program in "$@"; do
-    if ( ! is_program_exists "$program" ); then
+    if ( ! program_is_installed "$program" ); then
       die -e 1 "You must have *$program* installed!"
-    fi;
-  done;
+    fi
+  done
 }
 
 # Check if platform is Linux
@@ -179,23 +178,23 @@ function sync_repo() {
     info "Cloning $repo_name ..."
     mkdir -p "$repo_path"
     git clone --depth 1 --branch "$repo_branch" "$repo_uri" "$repo_path"
-    notice "noticefully cloned $repo_name."
+    notice "Successfully cloned $repo_name."
   else
     info "Updating $repo_name ..."
     cd "$repo_path" && git pull origin "$repo_branch"
-    notice "noticefully updated $repo_name."
+    notice "Successfully updated $repo_name."
   fi
 
   if [[ -e "$repo_path/.gitmodules" ]]; then
     info "Updating $repo_name submodules ..."
     cd "$repo_path"
     git submodule update --init --recursive
-    notice "noticefully updated $repo_name submodules."
+    notice "Successfully updated $repo_name submodules."
   fi
 }
 
 # Configure GNUPG
-function install_gnupg_config(){
+function install_gnupg_config() {
 
   notice "Installing GNUPG configuration ..."
 
@@ -205,27 +204,27 @@ function install_gnupg_config(){
   lnif "$APP_PATH/gnupg/gpg.conf" \
        "$HOME/.gnupg/gpg.conf"
 
-  notice "noticefully installed GNUPG configuration."
+  notice "Successfully installed GNUPG configuration."
 }
 
 # Configure bin scripts
-function install_bin(){
+function install_bin() {
 
   notice "Installing useful small scripts ..."
 
   local source_path="$APP_PATH/bin"
 
-  for bin in $source_path/*; do
+  for bin in "$source_path"/*; do
     local script_name
     script_name=$(basename "$bin")
     lnif "$bin" "$HOME/bin/$script_name"
   done
 
-  notice "noticefully installed useful scripts."
+  notice "Successfully installed useful scripts."
 }
 
 # Configure editorconfig
-function install_editorconfig(){
+function install_editorconfig() {
 
   notice "Installing editorconfig ..."
 
@@ -233,10 +232,10 @@ function install_editorconfig(){
        "$HOME/.editorconfig"
 
   notice "Maybe you should install editorconfig plugin for vim or sublime"
-  notice "noticefully installed editorconfig."
+  notice "Successfully installed editorconfig."
 }
 
-function install_fonts(){
+function install_fonts() {
 
   if ( ! is_linux ); then
     die -e 2 "This support *Linux* only"
@@ -269,11 +268,11 @@ function install_fonts(){
     fc-cache -f "$fonts_dir"
   fi
 
-  notice "noticefully installed Source Code Pro font."
+  notice "Successfully installed Source Code Pro font."
 }
 
 # Configure git config
-function install_git_config(){
+function install_git_config() {
 
   must_program_exists "git"
 
@@ -282,30 +281,8 @@ function install_git_config(){
   lnif "$APP_PATH/git/gitconfig" \
        "$HOME/.gitconfig"
 
-  info "Now config your name and email for git."
-
-  local user_now
-  user_now="$(whoami)"
-
-  input "What's your git username? ($user_now) "
-
-  local user_name
-  read -r user_name
-  if [ "$user_name" = "" ]; then
-    user_name="$user_now"
-  fi
-  git config --global user.name "$user_name"
-
-  input "What's your git email? ($user_name@example.com) "
-
-  local user_email
-  read -r user_email
-  if [ "$user_email" = "" ]; then
-    user_email="${user_now}@example.com"
-  fi
-  git config --global user.email "$user_email"
-
-  notice "noticefully installed gitconfig."
+  notice "Successfully installed gitconfig."
+  notice "Maybe you should configure your user.name, user.email and user.signingkey on .gitconfig"
 }
 
 # Configure vim_rc with Vundle and plugins
@@ -325,23 +302,9 @@ function install_vim_rc() {
 
   vim +PlugInstall +qall
 
-  notice "noticefully installed vimrc."
+  notice "Successfully installed vimrc."
 
   notice "You can add your own configs to ~/.vimrc.local, vim will source them automatically"
-}
-
-function util_append_dotvim_group(){
-  local group=$1
-  local conf="$HOME/.vimrc.plugins.before"
-
-  if ! grep -iE "^[ \t]*let[ \t]+g:dotvim_groups[ \t]*=[ \t]*\[.+]" "$conf" &>/dev/null ; then
-    printf "\nlet g:dotvim_groups = ['%s']" "$group" >> "$conf"
-  elif ! grep -iE "'$group'" "$conf" &>/dev/null; then
-    sed -e "s/]/, '$group']/" "$conf" | tee "$conf" &>/dev/null
-    if grep -iE "\[[ \t]*," "$conf" &>/dev/null; then
-      sed -e "s/\[[ \t]*,[ \t]*/[/" "$conf" | tee "$conf" &>/dev/null
-    fi;
-  fi;
 }
 
 # Try to change current shell using chsh
@@ -378,10 +341,12 @@ function install_bash_rc() {
        "$HOME/.bash_profile"
   lnif "$APP_PATH/bash/bashrc" \
        "$HOME/.bashrc"
+  lnif "$APP_PATH/bash/inputrc" \
+       "$HOME/.inputrc"
 
   change_shell "bash"
 
-  notice "noticefully installed bash and bash-it."
+  notice "Successfully installed bash and bash-it."
   notice "You can add your own configs to ~/.bashrc.local , bash will source them automatically"
 
   notice "Please open a new bash terminal to make configs go into effect."
@@ -391,6 +356,7 @@ function install_bash_rc() {
 function install_env_private() {
 
   must_program_exists "pass"
+  must_file_exists "~/.password-store/tokens/ENV_TOKENS.gpg"
 
   notice "Installing environment private tokens ..."
   info "You will be asked for decryption key!"
@@ -405,6 +371,7 @@ function install_env_private() {
 function install_aws_credentials() {
 
   must_program_exists "pass"
+  must_file_exists "~/.password-store/tokens/AWS_CREDENTIALS.gpg"
 
   notice "Installing AWS credentials ..."
   info "You will be asked for decryption key!"
@@ -464,6 +431,17 @@ function main () {
         install_git_config
         ;;
       vim_rc)
+        install_vim_rc
+        ;;
+      all)
+        configure_defaults
+        install_bin
+        install_gnupg_config
+        install_git_config
+        install_editorconfig
+        install_aws_credentials
+        install_env_private
+        install_bash_rc
         install_vim_rc
         ;;
       *)

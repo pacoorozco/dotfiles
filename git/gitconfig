@@ -95,10 +95,6 @@
 [push]
 	default = simple
 [user]
-	name = Paco
+	name = pacoorozco
 	email = paco@pacoorozco.info
-	name = Paco
-	name = Paco
-	signingkey = 04B064BC77CDA7AB
-[gpg]
-	program = gpg2
+	signingkey = 0x3AAE8432AEA1D738

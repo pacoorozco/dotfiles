@@ -32,9 +32,8 @@ These scripts will be installed to `~/bin` and added to your `$PATH`:
 
 * Enables color output and line-ending checks.
 * Shortens common commands: `br`, `ci`, `co`, `df`, `lg`.
-* Configure `user.name`, `user.email` and `user.signingkey`.
 
-In addition, during installation (see below), you will be prompted for your full name and email address, which are automatically added to the git config file.
+Remember to configure `user.name`, `user.email` and `user.signingkey` on `.gitconfig`.
 
 ### Vim Configuration
 - 4 spaced tabs
