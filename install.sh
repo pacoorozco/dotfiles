@@ -356,7 +356,7 @@ function install_bash_rc() {
 function install_env_private() {
 
   must_program_exists "pass"
-  must_file_exists "~/.password-store/tokens/ENV_TOKENS.gpg"
+  must_file_exists "$HOME/.password-store/tokens/ENV_TOKENS.gpg"
 
   notice "Installing environment private tokens ..."
   info "You will be asked for decryption key!"
@@ -371,7 +371,7 @@ function install_env_private() {
 function install_aws_credentials() {
 
   must_program_exists "pass"
-  must_file_exists "~/.password-store/tokens/AWS_CREDENTIALS.gpg"
+  must_file_exists "$HOME/.password-store/tokens/AWS_CREDENTIALS.gpg"
 
   notice "Installing AWS credentials ..."
   info "You will be asked for decryption key!"
