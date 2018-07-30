@@ -103,6 +103,7 @@ function show_help () {
     ${B}env_private${N}       Configure TOKENS in environment variables (needs tokens/TOKENS in pass)
     ${B}defaults${N}          Configure some defaults
     ${B}fonts${N}             Install & configure fonts
+    ${B}gnupg${N}             Configure GNUPG
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
     ${B}zsh_rc${N}            Install & configure oh-my-zsh
@@ -204,6 +205,20 @@ function install_atom_cfg(){
        "$HOME/.atom/config.cson"
 
   notice "noticefully installed ATOM configuration."
+}
+
+# Configure GNUPG
+function install_gnupg_config(){
+
+  notice "Installing GNUPG configuration ..."
+
+  lnif "$APP_PATH/gnupg/gpg-agent.conf" \
+       "$HOME/.gnupg/gpg-agent.conf"
+
+  lnif "$APP_PATH/gnupg/gpg.conf" \
+       "$HOME/.gnupg/gpg.conf"
+
+  notice "noticefully installed GNUPG configuration."
 }
 
 # Configure bin scripts
@@ -490,6 +505,9 @@ function main () {
           ;;
       fonts)
         install_fonts
+        ;;
+      gnupg)
+        install_gnupg_config
         ;;
       git_config)
         install_git_config
