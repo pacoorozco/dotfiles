@@ -117,5 +117,10 @@ source "$BASH_IT"/bash_it.sh
 # Set GOPATH environment variable
 [ -d "$HOME/web/go" ] && export GOPATH="$HOME/web/go"
 
+# Use a tty for gpg
+# Solves error: "gpg: signing failed: Inappropriate ioctl for device"
+GPG_TTY=$(tty)
+export GPG_TTY
+
 # Put you own environment private tokens in ~/.env_private
 [ -f "$HOME/.env_private" ] && source $HOME/.env_private

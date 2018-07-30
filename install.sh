@@ -105,7 +105,6 @@ function show_help () {
     ${B}gnupg${N}             Configure GNUPG
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
-    ${B}zsh_rc${N}            Install & configure oh-my-zsh
 
     Version: ${program_version}
 
@@ -261,7 +260,7 @@ function install_fonts(){
   # Linux
   fonts_dir="$HOME/.fonts"
   mkdir -p "$fonts_dir"
- 
+
   # Copy all fonts to user fonts directory
   eval "$find_command" | xargs -0 -I % cp "%" "$fonts_dir/"
 
@@ -388,39 +387,6 @@ function install_bash_rc() {
   notice "Please open a new bash terminal to make configs go into effect."
 }
 
-# Configure zsh_rc with oh-my-zsh and plugins
-function install_zsh_rc() {
-
-  must_program_exists "zsh"
-
-  notice "Installing zshrc ..."
-
-  sync_repo "https://github.com/robbyrussell/oh-my-zsh.git" \
-            "$APP_PATH/zsh/oh-my-zsh"
-
-  # add zsh plugin zsh-syntax-highlighting support
-  sync_repo "https://github.com/zsh-users/zsh-syntax-highlighting.git" \
-            "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
-
-  # add zsh plugin zsh-autosuggestions support
-  sync_repo "https://github.com/tarruda/zsh-autosuggestions.git" \
-            "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-autosuggestions"
-
-  lnif "$APP_PATH/zsh/oh-my-zsh" \
-       "$HOME/.oh-my-zsh"
-  lnif "$APP_PATH/zsh/zshrc" \
-       "$HOME/.zshrc"
-  lnif "$APP_PATH/zsh/zshrc.local" \
-       "$HOME/.zshrc.local"
-
-  change_shell "zsh"
-
-  notice "noticefully installed zsh and oh-my-zsh."
-  notice "You can add your own configs to ~/.zshrc.local , zsh will source them automatically"
-
-  notice "Please open a new zsh terminal to make configs go into effect."
-}
-
 # Configure private TOKENS into environment variables
 function install_env_private() {
 
@@ -499,9 +465,6 @@ function main () {
         ;;
       vim_rc)
         install_vim_rc
-        ;;
-      zsh_rc)
-        install_zsh_rc
         ;;
       *)
         error "Invalid params $arg"

@@ -40,19 +40,12 @@ In addition, during installation (see below), you will be prompted for your full
 - 4 spaced tabs
 - Autocompletion always on
 - Case insensitive search
-- Cursor crosshair
-- Dark background
-- Global config base
 - Global highlighting of search matches
-- Dracula theme
-- Marks in gutter
-- Mouse support
-- NERDTree Configuration
 - Numbered lines
-- Rainbow Parentheses Configuration
-- TAB toggles Taglist
-- Tons of plugins through Pathogen
 - Trailing whitespace highlighting
+- Tons of plugins through [Vundle](https://github.com/VundleVim/Vundle.vim): `onedark`, `lightline`, `vim-ployglot`.
+- [One Dark](https://github.com/joshdick/onedark.vim) theme
+
 
 ## Installation
 
@@ -67,4 +60,4 @@ cd ~/dotfiles
 [license]: https://github.com/pacoorozco/dotfiles
 [license-badge]: https://img.shields.io/github/license/pacoorozco/dotfiles.svg?style=flat-square
 [build]: https://travis-ci.org/pacoorozco/dotfiles
-[build-badge]: https://travis-ci.org/pacoorozco/dotfiles.svg
+[build-badge]: https://travis-ci.org/pacoorozco/dotfiles.svgl
