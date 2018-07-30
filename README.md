@@ -59,4 +59,4 @@ cd ~/dotfiles
 [license]: https://github.com/pacoorozco/dotfiles
 [license-badge]: https://img.shields.io/github/license/pacoorozco/dotfiles.svg?style=flat-square
 [build]: https://travis-ci.org/pacoorozco/dotfiles
-[build-badge]: https://travis-ci.org/pacoorozco/dotfiles.svgl
+[build-badge]: https://travis-ci.org/pacoorozco/dotfiles.svg
