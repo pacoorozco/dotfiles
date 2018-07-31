@@ -164,6 +164,15 @@ function lnif(){
   fi
 }
 
+# Copy a file if exists
+function cpif(){
+  if [ -e "$1" ]; then
+    info "Copying $1 to $2"
+    rm -rf "$2"
+    cp "$1" "$2"
+  fi
+}
+
 # Clone a github repo
 function sync_repo() {
 
@@ -278,7 +287,7 @@ function install_git_config() {
 
   notice "Installing gitconfig..."
 
-  lnif "$APP_PATH/git/gitconfig" \
+  cpif "$APP_PATH/git/gitconfig" \
        "$HOME/.gitconfig"
 
   notice "Successfully installed gitconfig."

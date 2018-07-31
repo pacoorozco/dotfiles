@@ -65,6 +65,15 @@ HISTTIMEFORMAT='%F %T '
 # immediately add commands to our history instead of waiting for the end of each session.
 export PROMPT_COMMAND="history -a; history -c; history -r; $PROMPT_COMMAND"
 
+# enable programmable completion features 
+if ! shopt -oq posix; then
+  if [ -f /usr/share/bash-completion/bash_completion ]; then
+    . /usr/share/bash-completion/bash_completion
+  elif [ -f /etc/bash_completion ]; then
+    . /etc/bash_completion
+  fi
+fi
+
 ###
 ### Enable Bash-it
 ###
