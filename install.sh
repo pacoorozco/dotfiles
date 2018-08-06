@@ -222,6 +222,8 @@ function install_bin() {
   notice "Installing useful small scripts ..."
 
   local source_path="$APP_PATH/bin"
+  
+  mkdir -p "$HOME/bin"
 
   for bin in "$source_path"/*; do
     local script_name
@@ -385,6 +387,7 @@ function install_aws_credentials() {
   notice "Installing AWS credentials ..."
   info "You will be asked for decryption key!"
 
+  mkdir -p "$HOME/.aws"
   pass show tokens/AWS_CREDENTIALS > "$HOME/.aws/credentials"
 
   notice "Successfully installed AWS_CREDENTIALS"
