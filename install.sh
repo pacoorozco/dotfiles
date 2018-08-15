@@ -374,10 +374,6 @@ function install_zsh_rc() {
   sync_repo "https://github.com/robbyrussell/oh-my-zsh.git" \
             "$APP_PATH/zsh/oh-my-zsh"
 
-  # add zsh plugin zsh-syntax-highlighting support
-  sync_repo "https://github.com/zsh-users/zsh-syntax-highlighting.git" \
-            "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
-
   # add zsh plugin zsh-autosuggestions support
   sync_repo "https://github.com/tarruda/zsh-autosuggestions.git" \
             "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-autosuggestions"
