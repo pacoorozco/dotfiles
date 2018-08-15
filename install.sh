@@ -6,7 +6,7 @@
 ##########################################################################
 # Program name and version
 program_name=$(basename "$0")
-program_version='0.0.2'
+program_version='0.0.3'
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -100,6 +100,7 @@ function show_help () {
     ${B}gnupg${N}             Configure GNUPG
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
+    ${B}zsh_rc${N}            Install & configure oh-my-zsh
 
     ${B}all${N}               Install all dotfiles & configuration
 
@@ -222,7 +223,7 @@ function install_bin() {
   notice "Installing useful small scripts ..."
 
   local source_path="$APP_PATH/bin"
-  
+
   mkdir -p "$HOME/bin"
 
   for bin in "$source_path"/*; do
@@ -363,6 +364,40 @@ function install_bash_rc() {
   notice "Please open a new bash terminal to make configs go into effect."
 }
 
+# Configure zsh_rc with oh-my-zsh and plugins
+function install_zsh_rc() {
+
+  must_program_exists "zsh"
+
+  notice "Installing zshrc ..."
+
+  sync_repo "https://github.com/robbyrussell/oh-my-zsh.git" \
+            "$APP_PATH/zsh/oh-my-zsh"
+
+  # add zsh plugin zsh-syntax-highlighting support
+  sync_repo "https://github.com/zsh-users/zsh-syntax-highlighting.git" \
+            "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-syntax-highlighting"
+
+  # add zsh plugin zsh-autosuggestions support
+  sync_repo "https://github.com/tarruda/zsh-autosuggestions.git" \
+            "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-autosuggestions"
+
+  lnif "$APP_PATH/zsh/oh-my-zsh" \
+       "$HOME/.oh-my-zsh"
+  lnif "$APP_PATH/zsh/zshrc" \
+       "$HOME/.zshrc"
+  lnif "$APP_PATH/zsh/zshrc.local" \
+       "$HOME/.zshrc.local"
+
+  change_shell "zsh"
+
+  notice "Successfully installed zsh and oh-my-zsh."
+  notice "You can add your own configs to ~/.zshrc.local , zsh will source them automatically"
+
+  notice "Please open a new zsh terminal to make configs go into effect."
+}
+
+
 # Configure private TOKENS into environment variables
 function install_env_private() {
 
@@ -423,6 +458,9 @@ function main () {
         ;;
       bash_rc)
           install_bash_rc
+          ;;
+      zsh_rc)
+          install_zsh_rc
           ;;
       editorconfig)
         install_editorconfig
