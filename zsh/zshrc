@@ -117,5 +117,3 @@ export GPG_TTY
 # Put you own environment private tokens in ~/.env_private
 [ -f "$HOME/.env_private" ] && source $HOME/.env_private
 
-# Bug fix workaround: https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1640514
-[ -f "/etc/profile.d/apps-bin-path.sh" ] && source /etc/profile.d/apps-bin-path.sh

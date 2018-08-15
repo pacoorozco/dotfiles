@@ -380,6 +380,8 @@ function install_zsh_rc() {
 
   lnif "$APP_PATH/zsh/oh-my-zsh" \
        "$HOME/.oh-my-zsh"
+  lnif "$APP_PATH/zsh/zshenv" \
+       "$HOME/.zshenv"
   lnif "$APP_PATH/zsh/zshrc" \
        "$HOME/.zshrc"
   lnif "$APP_PATH/zsh/zshrc.local" \

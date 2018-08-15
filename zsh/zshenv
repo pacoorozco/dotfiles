@@ -1,0 +1,3 @@
+# Bug fix workaround: https://bugs.launchpad.net/ubuntu/+source/snapd/+bug/1640514
+[ -f "/etc/profile.d/apps-bin-path.sh" ] && source /etc/profile.d/apps-bin-path.sh
+
