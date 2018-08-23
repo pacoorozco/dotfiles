@@ -1,5 +1,5 @@
 # If you come from bash you might have to change your $PATH.
-# export PATH=$HOME/bin:/usr/local/bin:$PATH
+export PATH=$HOME/bin:/usr/local/bin:$PATH
 
 # Path to your oh-my-zsh installation.
 export ZSH=/home/paco/.oh-my-zsh
@@ -76,10 +76,11 @@ source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
-# export MANPATH="/usr/local/man:$MANPATH"
+# Disable 'user@host' on path
+DEFAULT_USER=$USER
+prompt_context() {}
 
-# set PATH so it includes user's private bin if it exists
-[ -d "$HOME/bin" ] && export PATH="$HOME/bin:$PATH"
+# export MANPATH="/usr/local/man:$MANPATH"
 
 # You may need to manually set your language environment
 # export LANG=en_US.UTF-8
@@ -96,7 +97,11 @@ export EDITOR='vim'
 # export ARCHFLAGS="-arch x86_64"
 
 # Set GOPATH environment variable
-[ -d "$HOME/web/go" ] && export GOPATH="$HOME/web/go"
+if [ -d "$HOME/web/go" ]; then
+      export GOPATH="$HOME/web/go"
+      export PATH="$GOPATH/bin:$PATH"
+fi
+
 
 # ssh
 # export SSH_KEY_PATH="~/.ssh/rsa_id"
@@ -119,5 +124,5 @@ GPG_TTY=$(tty)
 export GPG_TTY
 
 # Put you own environment private tokens in ~/.env_private
-[ -f "$HOME/.env_private" ] && source $HOME/.env_private
+# [ -f "$HOME/.env_private" ] && source $HOME/.env_private
 
