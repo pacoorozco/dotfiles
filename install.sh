@@ -96,7 +96,6 @@ function show_help () {
     ${B}editorconfig${N}      Configure .editorconfig
     ${B}env_private${N}       Configure TOKENS in environment variables (needs tokens/TOKENS in pass)
     ${B}defaults${N}          Configure some defaults
-    ${B}fonts${N}             Install & configure fonts
     ${B}gnupg${N}             Configure GNUPG
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
@@ -245,42 +244,6 @@ function install_editorconfig() {
 
   notice "Maybe you should install editorconfig plugin for vim or sublime"
   notice "Successfully installed editorconfig."
-}
-
-function install_fonts() {
-
-  if ( ! is_linux ); then
-    die -e 2 "This support *Linux* only"
-  fi;
-
-  must_program_exists "git"
-
-  notice "Installing font Source Code Pro ..."
-
-  sync_repo "https://github.com/adobe-fonts/source-code-pro.git" \
-            "$APP_PATH/.cache/source-code-pro" \
-            "release"
-
-  local source_code_pro_ttf_dir="$APP_PATH/.cache/source-code-pro/TTF"
-
-  # borrowed from powerline/fonts/install.sh
-  local find_command="find \"$source_code_pro_ttf_dir\" \( -name '*.[o,t]tf' -or -name '*.pcf.gz' \) -type f -print0"
-
-  local fonts_dir
-
-  # Linux
-  fonts_dir="$HOME/.fonts"
-  mkdir -p "$fonts_dir"
-
-  # Copy all fonts to user fonts directory
-  eval "$find_command" | xargs -0 -I % cp "%" "$fonts_dir/"
-
-  # Reset font cache on Linux
-  if [[ -n "$(which fc-cache)" ]]; then
-    fc-cache -f "$fonts_dir"
-  fi
-
-  notice "Successfully installed Source Code Pro font."
 }
 
 # Configure git config
@@ -473,9 +436,6 @@ function main () {
       defaults)
           configure_defaults
           ;;
-      fonts)
-        install_fonts
-        ;;
       gnupg)
         install_gnupg_config
         ;;
