@@ -378,6 +378,10 @@ function install_zsh_rc() {
   sync_repo "https://github.com/tarruda/zsh-autosuggestions.git" \
             "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-autosuggestions"
 
+  # add powerline9k theme
+  sync_repo "https://github.com/bhilburn/powerlevel9k.git" \
+  			"$APP_PATH/zsh/oh-my-zsh/custom/themes/powerlevel9k"
+
   lnif "$APP_PATH/zsh/oh-my-zsh" \
        "$HOME/.oh-my-zsh"
   lnif "$APP_PATH/zsh/zshenv" \
