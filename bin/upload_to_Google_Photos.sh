@@ -52,7 +52,7 @@ function main () {
 	find "${DirToUpload}" -mindepth 1 -maxdepth 1 -type d -print0 |
 	while IFS= read -r -d '' Dir; do
     	info "Processing ${Dir}"
-    	if keyIsNoInDatabase "${Dir}" "${uploadedFilesDatabase}"; then
+    	if keyIsNotInDatabase "${Dir}" "${uploadedFilesDatabase}"; then
         	debug "Uploading: ${Dir}"
         	if uploadDirectory "${Dir}"; then
             	addKeyToDatabase "${Dir}" "${uploadedFilesDatabase}"
