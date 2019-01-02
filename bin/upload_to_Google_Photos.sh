@@ -198,17 +198,18 @@ EOF
 
 # Uploads a directory and creates a new album using `gpup`.
 function uploadDirectory() {
-	local _directory: _directory=${1:-}
+	local _directory
+	_directory=${1:-}
 	[[ -z "${_directory}" ]] && die -e 127 "No directory has been specified."
 	local _albumName
-	_albumName=$(echo "${$(basename "${_directory}")%-*}")
 
-	local _ret; _ret=0
+        _albumName=$(basename "${_directory}")
+	local _ret
+	 _ret=0
 	if [[ "${dryRunFlag}" -eq "0" ]]; then
 		${GPUPBinary} --new-album "${_albumName}" "${_directory}"
 		_ret=$?
 	fi
-
 	return ${_ret}
 }
 
