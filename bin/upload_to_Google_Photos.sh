@@ -54,7 +54,7 @@ function main () {
       info "Processing ${Dir}"
 
       # Test if directory is empty (has no files to upload).
-      if [[ "$(find ${Dir} -type f | wc -l)" -eq "0" ]]; then
+      if [[ "$(find "${Dir}" -type f | wc -l)" -eq "0" ]]; then
         debug "    Directory is empty. Skipped!"
         continue
       fi
