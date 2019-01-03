@@ -51,19 +51,30 @@ function main () {
 
 	find "${DirToUpload}" -mindepth 1 -maxdepth 1 -type d -print0 |
 	while IFS= read -r -d '' Dir; do
-    	info "Processing ${Dir}"
-    	if keyIsNotInDatabase "${Dir}" "${uploadedFilesDatabase}"; then
-        	debug "Uploading: ${Dir}"
-        	if uploadDirectory "${Dir}"; then
-            	addKeyToDatabase "${Dir}" "${uploadedFilesDatabase}"
-            	info "    Upload succeeded."
-        	else
-            	die -e 2 "An error ocurred when uploading: ${Dir}"
-        	fi
-    	else
-        	debug "Directory was found in uploaded files database. Skipped!"
-    	fi
-	done
+      info "Processing ${Dir}"
+
+      # Test if directory is empty (has no files to upload).
+      if [[ "$(find ${Dir} -type f | wc -l)" -eq "0" ]]; then
+        debug "    Directory is empty. Skipped!"
+        continue
+      fi
+
+      # Check if directory was previously uploaded. Skip it if it was.
+      if keyIsInDatabase "${Dir}" "${uploadedFilesDatabase}"; then
+        debug "    Directory was found in uploaded files database. Skipped!"
+        continue
+      fi
+
+      # Upload the directory contents.
+      debug "Uploading: ${Dir}"
+      if ! uploadDirectory "${Dir}"; then
+        die -e 2 "    An error ocurred when uploading. Exiting!"
+      fi
+
+      # Add directory to uploaded files database
+      addKeyToDatabase "${Dir}" "${uploadedFilesDatabase}"
+      info "    Upload succeeded."
+  done
 }
 
 
