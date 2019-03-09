@@ -383,12 +383,14 @@ function install_aws_credentials() {
 
   must_program_exists "pass"
   must_file_exists "$HOME/.password-store/tokens/AWS_CREDENTIALS.gpg"
+  must_file_exists "$HOME/.password-store/tokens/AWS_Extend_Switch_Roles.gpg"
 
   notice "Installing AWS credentials ..."
   info "You will be asked for decryption key!"
 
   mkdir -p "$HOME/.aws"
   pass show tokens/AWS_CREDENTIALS > "$HOME/.aws/credentials"
+  pass show tokens/AWS_Extend_Switch_Roles > "$HOME/.aws/AWS_Extend_Switch_Roles.conf"
 
   notice "Successfully installed AWS_CREDENTIALS"
   notice "Please open a new terminal to make configs go into effect."
