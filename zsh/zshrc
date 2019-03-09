@@ -102,8 +102,8 @@ export EDITOR='vim'
 # export ARCHFLAGS="-arch x86_64"
 
 # Set GOPATH environment variable
-if [ -d "$HOME/web/go" ]; then
-      export GOPATH="$HOME/web/go"
+if [ -d "$HOME/src/go" ]; then
+      export GOPATH="$HOME/src/go"
       export PATH="$GOPATH/bin:$PATH"
 fi
 
