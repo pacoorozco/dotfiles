@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
 # Configuration variables
-GPUPBinary=/home/paco/web/gpup/gpup
+GPUPBinary=/home/paco/bin/gpup
 
 ##########################################################################
 # DO NOT MODIFY BEYOND THIS LINE
@@ -54,7 +54,7 @@ function main () {
       info "Processing ${Dir}"
 
       # Test if directory is empty (has no files to upload).
-      if [[ "$(find ${Dir} -type f | wc -l)" -eq "0" ]]; then
+      if [[ "$(find "${Dir}" -type f | wc -l)" -eq "0" ]]; then
         debug "    Directory is empty. Skipped!"
         continue
       fi
