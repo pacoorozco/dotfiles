@@ -8,7 +8,12 @@ export ZSH=/home/paco/.oh-my-zsh
 # it'll load a random theme each time that oh-my-zsh is loaded.
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
 #ZSH_THEME="robbyrussell"
-ZSH_THEME="agnoster"
+#ZSH_THEME="agnoster"
+ZSH_THEME="powerlevel9k/powerlevel9k"
+POWERLEVEL9K_MODE='awesome-fontconfig'
+POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir vcs)
+POWERLEVEL9K_DISABLE_RPROMPT=true
+POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
 
 # Set list of themes to load
 # Setting this variable when ZSH_THEME=random
@@ -60,8 +65,8 @@ ZSH_THEME="agnoster"
 # Example format: plugins=(rails git textmate ruby lighthouse)
 # Add wisely, as too many plugins slow down shell startup.
 plugins=(
+  aws
   colored-man-pages
-  command-not-found
   extract
   git
   pass
@@ -97,8 +102,8 @@ export EDITOR='vim'
 # export ARCHFLAGS="-arch x86_64"
 
 # Set GOPATH environment variable
-if [ -d "$HOME/web/go" ]; then
-      export GOPATH="$HOME/web/go"
+if [ -d "$HOME/src/go" ]; then
+      export GOPATH="$HOME/src/go"
       export PATH="$GOPATH/bin:$PATH"
 fi
 
@@ -126,3 +131,10 @@ export GPG_TTY
 # Put you own environment private tokens in ~/.env_private
 # [ -f "$HOME/.env_private" ] && source $HOME/.env_private
 
+# Added on 2018-08-16 13:48:12.453890 (UTC)
+# Comment out to disable shell-integration
+[ -e "/home/paco/.adv/bin/sch-shell-integration-v1.sh" ] \
+  && source "/home/paco/.adv/bin/sch-shell-integration-v1.sh"
+
+# added by travis gem
+[ -f /home/paco/.travis/travis.sh ] && source /home/paco/.travis/travis.sh
