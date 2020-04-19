@@ -112,9 +112,9 @@ function main () {
       # destination_dir is unlinked first.  If it were not so, this would
       # copy over the other snapshot(s) too!
       debug "Doing rsync ${source_dir} to ${destination_dir}..."
-      rsync --verbose --progress --archive --delete --delete-excluded "${exclude_options}" \
-            "${source_dir}" "${destination_dir}"
-
+      rsync_options="--verbose --human-readable --archive --delete --delete-excluded ${exclude_options} ${source_dir} ${destination_dir}"
+      number_of_files=$(rsync --dry-run ${rsync_options} | wc -l)
+      rsync ${rsync_options} | pv --line-mode --eta --progress --size $number_of_files >/dev/null
       info "Backup process successfully completed for ${source_dir}"
     else 
       warning "Skipping source - invalid folder ${source_dir}"

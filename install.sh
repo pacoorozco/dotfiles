@@ -96,7 +96,6 @@ function show_help () {
     ${B}editorconfig${N}      Configure .editorconfig
     ${B}env_private${N}       Configure TOKENS in environment variables (needs tokens/TOKENS in pass)
     ${B}defaults${N}          Configure some defaults
-    ${B}fonts${N}             Install & configure fonts
     ${B}gnupg${N}             Configure GNUPG
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
@@ -247,42 +246,6 @@ function install_editorconfig() {
   notice "Successfully installed editorconfig."
 }
 
-function install_fonts() {
-
-  if ( ! is_linux ); then
-    die -e 2 "This support *Linux* only"
-  fi;
-
-  must_program_exists "git"
-
-  notice "Installing font Source Code Pro ..."
-
-  sync_repo "https://github.com/adobe-fonts/source-code-pro.git" \
-            "$APP_PATH/.cache/source-code-pro" \
-            "release"
-
-  local source_code_pro_ttf_dir="$APP_PATH/.cache/source-code-pro/TTF"
-
-  # borrowed from powerline/fonts/install.sh
-  local find_command="find \"$source_code_pro_ttf_dir\" \( -name '*.[o,t]tf' -or -name '*.pcf.gz' \) -type f -print0"
-
-  local fonts_dir
-
-  # Linux
-  fonts_dir="$HOME/.fonts"
-  mkdir -p "$fonts_dir"
-
-  # Copy all fonts to user fonts directory
-  eval "$find_command" | xargs -0 -I % cp "%" "$fonts_dir/"
-
-  # Reset font cache on Linux
-  if [[ -n "$(which fc-cache)" ]]; then
-    fc-cache -f "$fonts_dir"
-  fi
-
-  notice "Successfully installed Source Code Pro font."
-}
-
 # Configure git config
 function install_git_config() {
 
@@ -378,6 +341,10 @@ function install_zsh_rc() {
   sync_repo "https://github.com/tarruda/zsh-autosuggestions.git" \
             "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-autosuggestions"
 
+  # add powerline9k theme
+  sync_repo "https://github.com/bhilburn/powerlevel9k.git" \
+            "$APP_PATH/zsh/oh-my-zsh/custom/themes/powerlevel9k"
+
   lnif "$APP_PATH/zsh/oh-my-zsh" \
        "$HOME/.oh-my-zsh"
   lnif "$APP_PATH/zsh/zshenv" \
@@ -416,12 +383,14 @@ function install_aws_credentials() {
 
   must_program_exists "pass"
   must_file_exists "$HOME/.password-store/tokens/AWS_CREDENTIALS.gpg"
+  must_file_exists "$HOME/.password-store/tokens/AWS_Extend_Switch_Roles.gpg"
 
   notice "Installing AWS credentials ..."
   info "You will be asked for decryption key!"
 
   mkdir -p "$HOME/.aws"
   pass show tokens/AWS_CREDENTIALS > "$HOME/.aws/credentials"
+  pass show tokens/AWS_Extend_Switch_Roles > "$HOME/.aws/AWS_Extend_Switch_Roles.conf"
 
   notice "Successfully installed AWS_CREDENTIALS"
   notice "Please open a new terminal to make configs go into effect."
@@ -469,9 +438,6 @@ function main () {
       defaults)
           configure_defaults
           ;;
-      fonts)
-        install_fonts
-        ;;
       gnupg)
         install_gnupg_config
         ;;

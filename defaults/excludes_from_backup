@@ -47,8 +47,11 @@
 #.PlayOnLinux
 /snap
 /Dropbox
+/.dropbox
+/.config
 /.dotfiles
 /Downloads
+/.local/share
 
 
 ################################################
