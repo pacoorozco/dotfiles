@@ -2,8 +2,8 @@
 #
 # A list of files to exclude when backing up *nix home directories using rsync.
 #
-# Author: Ruben Barkow <https://github.com/rubo77/rsync-homedir-excludes>
-# Version: 2018-05-18
+# Author: Ruben Barkow-Kuder <https://github.com/rubo77/rsync-homedir-excludes>
+# Version: 2019-11-30
 #
 # #Usage:
 #    USER=<homedir username here>
@@ -15,44 +15,59 @@
 # (uncomment the files you don't need)        #
 ###############################################
 
-#.android
-#.AndroidStudio*/
-#Android/Sdk
-#.gradle
-#.gvm
-#.grails/
-#.grails_history
+.android
+.AndroidStudio*/
+Android/Sdk
+.gradle
+.gvm
+.grails/
+.grails_history
 .kde/share/apps/nepomuk
-#.local/share/notbit
-#.local/libvirt
+.local/share/notbit
+.local/libvirt
 .vagrant
 .vagrant.d
 .wine
-#.twister
-#/twister
-#Applications/eclipse*
-#/Downloads
-#*Popcorntime*
-#/.aMule
-#/Scribus
+.twister
+/twister
+Applications/eclipse*
+/Downloads
+*Popcorntime*
+/.aMule
+/Scribus
 /VirtualBox*
+/Nextcloud
+_build
+#
+## Ruby gems
+.rvm
 #
 ## Add Game Folders here:
 #
 #/games
-#.local/share/Steam
-#.steam
-#Steam
+.local/share/Steam
+.steam
+/Steam
 #.minecraft
-#.PlayOnLinux
-/snap
-/Dropbox
-/.dropbox
-/.config
-/.dotfiles
-/Downloads
-/.local/share
-
+.PlayOnLinux
+#
+## Spotify
+.config/spotify/Users
+#
+## those folders contain only temporary Videos I want to watch
+#/Videos
+#/Movies
+#
+## some history files
+.python_history
+.bash_history
+.zsh_history
+#
+## Python eggs
+.local/lib/python*
+#
+## Unlocked Plasma Vaults
+#/Vaults
 
 ################################################
 # These directories may definitely be excluded #
@@ -64,6 +79,7 @@
 .local/share/gvfs-metadata
 # contains the actual encrypted home directory
 /.Private
+/Private
 
 # Session-specific:
 /.dbus
@@ -81,6 +97,9 @@
 
 # Node Package Manager cache
 .npm
+
+# Node Version Manager
+.nvm
 
 #Flash-specific:
 
@@ -105,8 +124,9 @@ recently-used.xbel
 Thumbs.db
 .DS_Store
 .localised
-.bash_history
 .CFUserTextEncoding
+.zcompdump*
+.wget-hsts
 
 # Common Unix Printing System
 /.cups
@@ -145,12 +165,15 @@ Thumbs.db
 .kde/share/apps/kmess/customemoticons
 .kde4/share/apps/kmess/customemoticons
 
+#Tor Browser supposed to not be backupped ;)
+.local/share/torbrowser
+
 #Firefox-specific (see also Profile folder):
 
 .mozilla/firefox/*/Cache
 # in case Fx crashes dumps will be stored in this
 .mozilla/firefox/*/minidumps
-# session-specific 
+# session-specific
 .mozilla/firefox/*/.parentlock
 # phishing database, recreated
 .mozilla/firefox/*/urlclassifier3.sqlite
@@ -175,7 +198,7 @@ Thumbs.db
 .mozilla/seamonkey/*/Cache
 # in case Fx crashes dumps will be stored in this
 .mozilla/seamonkey/*/minidumps
-# session-specific 
+# session-specific
 .mozilla/seamonkey/*/.parentlock
 # blacklisted extensions
 .mozilla/seamonkey/*/blocklist.xml
@@ -231,8 +254,8 @@ Thumbs.db
 .komodoedit/*/mutex.lock
 .komodoedit/*/*.xmlc
 .komodoedit/*/startup-env.tmp
-.komoeoedit/*/commandments.fifo
-.komoeoedit/*/history.sqlite
+.komodoedit/*/commandments.fifo
+.komodoedit/*/history.sqlite
 
 #GnuPG:
 
@@ -248,10 +271,12 @@ Thumbs.db
 
 #Google Chrome:
 
+.config/google-chrome/ShaderCache
 .config/google-chrome/Default/Local Storage
 .config/google-chrome/Default/Session Storage
 .config/google-chrome/Default/Application Cache
 .config/google-chrome/Default/History Index *
+.config/google-chrome/Default/Service Worker/CacheStorage
 
 #Chromium:
 
@@ -259,6 +284,20 @@ Thumbs.db
 .config/chromium/Default/Session Storage
 .config/chromium/Default/Application Cache
 .config/chromium/Default/History Index *
+/snap/chromium/common/.cache
+/snap/chromium/*/.config/chromium/Default/Service Worker/CacheStorage
+/snap/chromium/*/.local/share/
+
+#Riot
+/snap/riot-web/
+
+#Brave
+.config/BraveSoftware/Brave-Browser/Default/Feature Engagement Tracker/
+.config/BraveSoftware/Brave-Browser/Default/Local Storage/
+.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage/
+.config/BraveSoftware/Brave-Browser/Default/Session Storage/
+.config/BraveSoftware/Brave-Browser/Safe Browsing/
+.config/BraveSoftware/Brave-Browser/ShaderCache/
 
 #Local repositories:
 .gradle/caches
@@ -272,7 +311,7 @@ Thumbs.db
 #Other apps:
 
 # Pidgin
-.pulse/icons
+.purple/icons
 # Cached applets
 .guayadeque/cache.db
 .java/deployment/cache
@@ -280,7 +319,7 @@ Thumbs.db
 .icedtea
 .gnome2/epiphany/favicon_cache
 
-# other temporary files 
+# other temporary files
 nohup.out
 
 # LibreOffice cache files
@@ -289,13 +328,50 @@ nohup.out
 # freshplayerplugin LSO
 .config/freshwrapper-data/Shockwave Flash/WritableRoot/#SharedObjects
 
-# ccache, remove cache but keep config
-.ccache/?
-.ccache/tmp
+# Snap caches
+.config/*/Cache
 
 # Atom
 .config/Atom/*Cache
 .config/Atom/IndexedDB
+.atom/compile-cache/
+
+# Vim
+.vim/bundle/*
+.viminfo
+
+# VS Code
+.vscode-oss/extensions/*
+.vscode/extensions/*
+.config/Code - OSS/blob_storage/
+.config/Code - OSS/GPUCache/
+.config/Code - OSS/logs/
+.config/Code/blob_storage/
+.config/Code/GPUCache/
+.config/Code/logs/
 
 # VirtualBox
 .config/VirtualBox/VBoxSVC.log*
+
+# Rust artefacts
+.cargo
+.rustup
+
+# Erlang artefacts
+.kerl
+
+# ccache, remove cache but keep config
+.ccache/?
+.ccache/tmp
+
+# Custom
+/.IntelliJIdea*
+/Calibre Library
+/Dropbox
+/Homestead
+/Private
+/Public
+/Videos
+/.dropbox
+/snap
+/.config/balena-etcher-electron
