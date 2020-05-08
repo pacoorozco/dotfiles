@@ -341,9 +341,9 @@ function install_zsh_rc() {
   sync_repo "https://github.com/tarruda/zsh-autosuggestions.git" \
             "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-autosuggestions"
 
-  # add powerline9k theme
-  sync_repo "https://github.com/bhilburn/powerlevel9k.git" \
-            "$APP_PATH/zsh/oh-my-zsh/custom/themes/powerlevel9k"
+  # add powerline10k theme
+  sync_repo "https://github.com/romkatv/powerlevel10k.git" \
+            "$APP_PATH/zsh/oh-my-zsh/custom/themes/powerlevel10k"
 
   lnif "$APP_PATH/zsh/oh-my-zsh" \
        "$HOME/.oh-my-zsh"
@@ -449,13 +449,13 @@ function main () {
         ;;
       all)
         configure_defaults
+        install_zsh_rc
         install_bin
         install_gnupg_config
         install_git_config
         install_editorconfig
         install_aws_credentials
         install_env_private
-        install_bash_rc
         install_vim_rc
         ;;
       *)
