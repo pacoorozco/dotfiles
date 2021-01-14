@@ -1,6 +1,6 @@
 # dotfiles
 
-[![Build Status][build-badge]][build]
+![CI](https://github.com/pacoorozco/dotfiles/workflows/CI/badge.svg)
 [![License][license-badge]][license]
 
 This project contains the dotfiles and custom shell scripts that I use on my workstations.
@@ -92,5 +92,3 @@ cd ~/dotfiles
 
 [license]: https://github.com/pacoorozco/dotfiles
 [license-badge]: https://img.shields.io/github/license/pacoorozco/dotfiles.svg?style=flat-square
-[build]: https://travis-ci.org/pacoorozco/dotfiles
-[build-badge]: https://travis-ci.org/pacoorozco/dotfiles.svg
