@@ -6,7 +6,7 @@
 ##########################################################################
 # Program name and version
 program_name=$(basename "$0")
-program_version='0.0.3'
+program_version='0.1.0'
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -100,6 +100,7 @@ function show_help () {
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
     ${B}zsh_rc${N}            Install & configure oh-my-zsh
+    ${B}nvm${N}               Install & configure nvm (node version manager)
 
     ${B}all${N}               Install all dotfiles & configuration
 
@@ -214,6 +215,16 @@ function install_gnupg_config() {
        "$HOME/.gnupg/gpg.conf"
 
   notice "Successfully installed GNUPG configuration."
+}
+
+# Configure nvm (node version manager)
+function install_nvm() {
+
+  notice "Installing nvm ..."
+
+  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
+  
+  notice "Successfully installed nvm."
 }
 
 # Configure bin scripts
@@ -447,6 +458,9 @@ function main () {
       vim_rc)
         install_vim_rc
         ;;
+      nvm)
+        install_nvm
+        ;;
       all)
         configure_defaults
         install_zsh_rc
@@ -457,6 +471,7 @@ function main () {
         install_aws_credentials
         install_env_private
         install_vim_rc
+        install_nvm
         ;;
       *)
         error "Invalid params $arg"

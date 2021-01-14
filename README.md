@@ -47,6 +47,7 @@ These scripts will be installed to `~/bin` and added to your `$PATH`:
    * colored-man-pages
    * extract
    * git
+   * nvm
    * pass
    * [zsh-autosuggestions](https://github.com/zsh-users/zsh-autosuggestions) - suggest commands as you type, based on command history
 * `$EDITOR` is `vim`.
