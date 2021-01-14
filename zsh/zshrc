@@ -60,6 +60,7 @@ plugins=(
   colored-man-pages
   extract
   git
+  nvm
   pass
   zsh-autosuggestions
 )
@@ -115,11 +116,3 @@ export GPG_TTY
 
 # Put you own environment private tokens in ~/.env_private
 # [ -f "$HOME/.env_private" ] && source $HOME/.env_private
-
-# Added on 2018-08-16 13:48:12.453890 (UTC)
-# Comment out to disable shell-integration
-[ -e "/home/paco/.adv/bin/sch-shell-integration-v1.sh" ] \
-  && source "/home/paco/.adv/bin/sch-shell-integration-v1.sh"
-
-# added by travis gem
-[ -f /home/paco/.travis/travis.sh ] && source /home/paco/.travis/travis.sh

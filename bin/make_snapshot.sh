@@ -271,7 +271,7 @@ function args_management () {
 
 # Check if requirements are satisfied
 function check_requirements () {
-  local REQUIRED_BINARIES="rsync"
+  local REQUIRED_BINARIES="rsync pv"
   
   for binary in $REQUIRED_BINARIES; do
     if [[ $(type -P "${binary}") ]]; then
