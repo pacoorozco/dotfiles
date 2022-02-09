@@ -25,6 +25,7 @@ Android/Sdk
 .kde/share/apps/nepomuk
 .local/share/notbit
 .local/libvirt
+.local/share/libvirt
 .vagrant
 .vagrant.d
 .wine
@@ -36,38 +37,54 @@ Applications/eclipse*
 /.aMule
 /Scribus
 /VirtualBox*
+.local/share/gnome-boxes/images
 /Nextcloud
 _build
-#
-## Ruby gems
+
+# Ruby gems
 .rvm
-#
-## Add Game Folders here:
-#
-#/games
+
+# Add Game Folders here:
+
+/games
 .local/share/Steam
+.var/app/com.valvesoftware.Steam/.local/share/Steam
 .steam
 /Steam
-#.minecraft
+.minecraft
+.technic
 .PlayOnLinux
-#
-## Spotify
+.local/share/lutris/runners/wine/
+
+# Spotify
 .config/spotify/Users
-#
-## those folders contain only temporary Videos I want to watch
-#/Videos
-#/Movies
-#
-## some history files
+.var/app/com.spotify.Client/config/spotify/Users
+
+# those folders contain only temporary Videos I want to watch
+/Videos
+/Movies
+
+# some history files
 .python_history
 .bash_history
 .zsh_history
-#
-## Python eggs
+.mysql_history
+
+# Python eggs
 .local/lib/python*
-#
-## Unlocked Plasma Vaults
-#/Vaults
+
+# Python virtual environments
+PycharmProjects/**/venv
+
+# Maven local repository
+/.m2
+
+# Unlocked Plasma Vaults
+/Vaults
+
+# Docker
+.docker/machine
+.local/share/containers
 
 ################################################
 # These directories may definitely be excluded #
@@ -79,11 +96,12 @@ _build
 .local/share/gvfs-metadata
 # contains the actual encrypted home directory
 /.Private
-/Private
 
 # Session-specific:
 /.dbus
 .cache
+.var/app/*/cache
+.var/app/*/.cache
 /.Trash
 .Trash-1*
 .local/share/Trash
@@ -112,6 +130,7 @@ _build
 
 # Contains errors from the current graphical session
 .xsession-errors
+.xsession-errors.old
 .wayland-errors
 
 # Recently used files
@@ -153,17 +172,25 @@ Thumbs.db
 # Contains a history of the Klipper clipboard (KDE)
 .kde/share/apps/klipper
 .kde4/share/apps/klipper
+.local/share/klipper
 # You will loose saved scrolling positions of PDFs
 .kde/share/apps/okular/docdata
 .kde/share/apps/gwenview/recentfolders
 .kde4/share/apps/okular/docdata
 .kde4/share/apps/gwenview/recentfolders
+.local/share/okular/docdata
+.local/share/org.kde.gwenview/recentfolders
 # Cached other users' profile pics
 .kde/share/apps/kmess/displaypics
 .kde4/share/apps/kmess/displaypics
 # Cached emoticons of others
 .kde/share/apps/kmess/customemoticons
 .kde4/share/apps/kmess/customemoticons
+
+#Gnome specific:
+
+# tracker data files
+.local/share/tracker
 
 #Tor Browser supposed to not be backupped ;)
 .local/share/torbrowser
@@ -173,7 +200,7 @@ Thumbs.db
 .mozilla/firefox/*/Cache
 # in case Fx crashes dumps will be stored in this
 .mozilla/firefox/*/minidumps
-# session-specific
+# session-specific 
 .mozilla/firefox/*/.parentlock
 # phishing database, recreated
 .mozilla/firefox/*/urlclassifier3.sqlite
@@ -198,7 +225,7 @@ Thumbs.db
 .mozilla/seamonkey/*/Cache
 # in case Fx crashes dumps will be stored in this
 .mozilla/seamonkey/*/minidumps
-# session-specific
+# session-specific 
 .mozilla/seamonkey/*/.parentlock
 # blacklisted extensions
 .mozilla/seamonkey/*/blocklist.xml
@@ -272,30 +299,31 @@ Thumbs.db
 #Google Chrome:
 
 .config/google-chrome/ShaderCache
-.config/google-chrome/Default/Local Storage
-.config/google-chrome/Default/Session Storage
-.config/google-chrome/Default/Application Cache
-.config/google-chrome/Default/History Index *
-.config/google-chrome/Default/Service Worker/CacheStorage
+.config/google-chrome/*/Local Storage
+.config/google-chrome/*/Session Storage
+.config/google-chrome/*/Application Cache
+.config/google-chrome/*/History Index *
+.config/google-chrome/*/Service Worker/CacheStorage
 
 #Chromium:
 
-.config/chromium/Default/Local Storage
-.config/chromium/Default/Session Storage
-.config/chromium/Default/Application Cache
-.config/chromium/Default/History Index *
+.config/chromium/*/Local Storage
+.config/chromium/*/Session Storage
+.config/chromium/*/Service Worker/CacheStorage
+.config/chromium/*/Application Cache
+.config/chromium/*/History Index *
 /snap/chromium/common/.cache
-/snap/chromium/*/.config/chromium/Default/Service Worker/CacheStorage
+/snap/chromium/*/.config/chromium/*/Service Worker/CacheStorage
 /snap/chromium/*/.local/share/
 
 #Riot
 /snap/riot-web/
 
 #Brave
-.config/BraveSoftware/Brave-Browser/Default/Feature Engagement Tracker/
-.config/BraveSoftware/Brave-Browser/Default/Local Storage/
-.config/BraveSoftware/Brave-Browser/Default/Service Worker/CacheStorage/
-.config/BraveSoftware/Brave-Browser/Default/Session Storage/
+.config/BraveSoftware/Brave-Browser/*/Feature Engagement Tracker/
+.config/BraveSoftware/Brave-Browser/*/Local Storage/
+.config/BraveSoftware/Brave-Browser/*/Service Worker/CacheStorage/
+.config/BraveSoftware/Brave-Browser/*/Session Storage/
 .config/BraveSoftware/Brave-Browser/Safe Browsing/
 .config/BraveSoftware/Brave-Browser/ShaderCache/
 
@@ -343,15 +371,15 @@ nohup.out
 # VS Code
 .vscode-oss/extensions/*
 .vscode/extensions/*
-.config/Code - OSS/blob_storage/
-.config/Code - OSS/GPUCache/
 .config/Code - OSS/logs/
-.config/Code/blob_storage/
-.config/Code/GPUCache/
 .config/Code/logs/
+
+# VS Codium
+.config/VSCodium/CachedExtensionVSIXs
 
 # VirtualBox
 .config/VirtualBox/VBoxSVC.log*
+.config/VirtualBox/VBoxGuestAdditions_*
 
 # Rust artefacts
 .cargo
@@ -360,18 +388,50 @@ nohup.out
 # Erlang artefacts
 .kerl
 
+# golang Cache
+go/pkg/mod/cache
+
 # ccache, remove cache but keep config
 .ccache/?
 .ccache/tmp
 
+# Nvidia OpenGL Shader Cache
+.nv/GLCache
+
+# Citrix ICA Client
+.ICAClient/logs
+.ICAClient/.tmp
+.ICAClient/cache/zlcache
+
+# Geany IDE - socket file
+.config/geany/geany_socket_*
+
+# LBRY
+.config/lbry
+.local/share/lbry/lbrynet
+
+# Electron Apps
+.config/*/blob_storage
+.config/*/Application Cache
+.config/*/Cache
+.config/*/CachedData
+.config/*/Code Cache
+.config/*/GPUCache
+.var/app/**/blob_storage
+.var/app/**/Application Cache
+.var/app/**/Cache
+.var/app/**/CachedData
+.var/app/**/Code Cache
+.var/app/**/GPUCache
+
 # Custom
-/.IntelliJIdea*
 /Calibre Library
 /Dropbox
-/Homestead
+/.dotfiles
+/.password-store
 /Private
 /Public
-/Videos
-/.dropbox
 /snap
-/.config/balena-etcher-electron
+/.config/Slack
+/.zoom
+
