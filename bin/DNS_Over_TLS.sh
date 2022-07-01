@@ -28,12 +28,12 @@ set -o nounset
 ##########################################################################
 function main() {
 
+  check_requirements
+
   if [[ $# -ne 1 ]]; then
     show_status_DNS_Over_TLS
     exit
   fi
-
-  check_requirements
 
   case "$1" in
   --enable)
@@ -66,13 +66,13 @@ function main() {
 ##########################################################################
 
 function check_requirements() {
-  if [[ "$(whoami)" != "root" ]]; then
-    echo "ERROR: You must be root to execute this command."
+  if [[ $EUID -ne 0 ]]; then
+    echo "ERROR: This script must be run as root." 1>&2
     exit 127
   fi
 
   if [[ ! -f "${Configuration_File}" && ! -f "${Configuration_File}.disabled" ]]; then
-    echo "ERROR: Neither ${Configuration_File} nor ${Configuration_File}.disable exists."
+    echo "ERROR: Neither ${Configuration_File} nor ${Configuration_File}.disable exists." 1>&2
     exit 127
   fi
 }
