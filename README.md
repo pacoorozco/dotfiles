@@ -17,6 +17,7 @@ These scripts will be installed to `~/bin` and added to your `$PATH`:
 * `fs-cryptmount.sh` Mounts a encFS filesystem where I keep personal data.
 * `make_snapshot.sh` My personal backup solution to an external HD.
 * `myip.sh` An script to obtain my real IP
+* `DNS_Over_TLS.sh` Enable/disable DNS-Over-TLS. It's handy to allow the system to connect to baptive portal based networks.
 
 ### Shell enhancements (bash)
 
