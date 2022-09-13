@@ -434,4 +434,4 @@ go/pkg/mod/cache
 /snap
 /.config/Slack
 /.zoom
-
+/.aws/credentials
