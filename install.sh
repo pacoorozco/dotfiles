@@ -100,7 +100,6 @@ function show_help () {
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
     ${B}zsh_rc${N}            Install & configure oh-my-zsh
-    ${B}nvm${N}               Install & configure nvm (node version manager)
 
     ${B}all${N}               Install all dotfiles & configuration
 
@@ -214,17 +213,10 @@ function install_gnupg_config() {
   lnif "$APP_PATH/gnupg/gpg.conf" \
        "$HOME/.gnupg/gpg.conf"
 
+  lnif "$APP_PATH/gnupg/dirmngr.conf" \
+       "$HOME/.gnupg/dirmngr.conf"
+
   notice "Successfully installed GNUPG configuration."
-}
-
-# Configure nvm (node version manager)
-function install_nvm() {
-
-  notice "Installing nvm ..."
-
-  curl -o- https://raw.githubusercontent.com/nvm-sh/nvm/v0.34.0/install.sh | bash
-  
-  notice "Successfully installed nvm."
 }
 
 # Configure bin scripts
@@ -365,7 +357,7 @@ function install_zsh_rc() {
   lnif "$APP_PATH/zsh/zshrc.local" \
        "$HOME/.zshrc.local"
 
-  change_shell "zsh"
+  #change_shell "zsh"
 
   notice "Successfully installed zsh and oh-my-zsh."
   notice "You can add your own configs to ~/.zshrc.local , zsh will source them automatically"
@@ -458,9 +450,6 @@ function main () {
       vim_rc)
         install_vim_rc
         ;;
-      nvm)
-        install_nvm
-        ;;
       all)
         configure_defaults
         install_zsh_rc
@@ -471,7 +460,6 @@ function main () {
         install_aws_credentials
         install_env_private
         install_vim_rc
-        install_nvm
         ;;
       *)
         error "Invalid params $arg"
