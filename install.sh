@@ -292,24 +292,6 @@ function install_vim_rc() {
   notice "You can add your own configs to ~/.vimrc.local, vim will source them automatically"
 }
 
-# Try to change current shell using chsh
-function change_shell() {
-  local new_shell="$1"
-  local TEST_CURRENT_SHELL
-  TEST_CURRENT_SHELL=$(expr "$SHELL" : '.*/\(.*\)')
-  if [ "$TEST_CURRENT_SHELL" != "$new_shell" ]; then
-    # If this platform provides a "chsh" command (not Cygwin), do it, man!
-    if hash chsh >/dev/null 2>&1; then
-      info "Time to change your default shell to bash!"
-      chsh -s "$(grep "/${new_shell}$" /etc/shells | tail -1)"
-    # Else, suggest the user do so manually.
-    else
-      error "I can't change your shell automatically because this system does not have chsh."
-      error "Please manually change your default shell to ${new_shell}!"
-    fi
-  fi
-}
-
 # Configure bash_rc with bash-it and plugins
 function install_bash_rc() {
 
@@ -328,8 +310,6 @@ function install_bash_rc() {
        "$HOME/.bashrc"
   lnif "$APP_PATH/bash/inputrc" \
        "$HOME/.inputrc"
-
-  change_shell "bash"
 
   notice "Successfully installed bash and bash-it."
   notice "You can add your own configs to ~/.bashrc.local , bash will source them automatically"
@@ -363,8 +343,6 @@ function install_zsh_rc() {
        "$HOME/.zshrc"
   lnif "$APP_PATH/zsh/zshrc.local" \
        "$HOME/.zshrc.local"
-
-  #change_shell "zsh"
 
   notice "Successfully installed zsh and oh-my-zsh."
   notice "You can add your own configs to ~/.zshrc.local , zsh will source them automatically"
@@ -427,6 +405,9 @@ function configure_defaults() {
 
   lnif "$APP_PATH/defaults/excludes_from_backup" \
        "$HOME/.excludes_from_backup"
+
+  lnif "$APP_PATH/defaults/profile" \
+       "$HOME/.profile"
 
   notice "Successfully configured defaults"
 }

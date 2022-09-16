@@ -1,7 +1,2 @@
-# Use a tty for gpg
-# Solves error: "gpg: signing failed: Inappropriate ioctl for device"
-GPG_TTY=$(tty)
-export GPG_TTY
+# This file is read by zsh(1)
 
-# Set my default GPG key
-export GPGKEY=7E35837B

@@ -1,6 +1,3 @@
-# If you come from bash you might have to change your $PATH.
-export PATH=$HOME/bin:$HOME/.local/bin:/usr/local/bin:$PATH
-
 # Path to your oh-my-zsh installation.
 export ZSH=/home/paco/.oh-my-zsh
 
@@ -60,7 +57,6 @@ plugins=(
   colored-man-pages
   extract
   git
-  nvm
   pass
   zsh-autosuggestions
 )
@@ -88,17 +84,8 @@ export EDITOR='vim'
 # Compilation flags
 # export ARCHFLAGS="-arch x86_64"
 
-# Set GOPATH environment variable
-if [ -d "$HOME/src/go" ]; then
-      export GOPATH="$HOME/src/go"
-      export PATH="$GOPATH/bin:$PATH"
-fi
-
 # ssh
 # export SSH_KEY_PATH="~/.ssh/rsa_id"
-
-# Define default umask value
-umask 077
 
 # Set personal aliases, overriding those provided by oh-my-zsh libs,
 # plugins, and themes. Aliases can be placed here, though oh-my-zsh
@@ -110,7 +97,6 @@ umask 077
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
 # Use a tty for gpg
-# Solves error: "gpg: signing failed: Inappropriate ioctl for device"
 GPG_TTY=$(tty)
 export GPG_TTY
 
