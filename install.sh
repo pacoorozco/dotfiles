@@ -91,6 +91,7 @@ function show_help () {
     ${B}Tasks:${N}
 
     ${B}aws_credentials${N}   Configure AWS credentials in .aws/credentials
+    ${B}backup-tool${N}       Install & configure the backup-tool
     ${B}bash_rc${N}           Install & configure bash-it
     ${B}bin${N}               Make ~/bin accessible
     ${B}editorconfig${N}      Configure .editorconfig
@@ -236,6 +237,22 @@ function install_bin() {
   done
 
   notice "Successfully installed useful scripts."
+}
+
+# Configure backup tool
+function install_backup_tool() {
+
+  notice "Installing backups tool..."
+
+  mkdir -p "$HOME/bin"
+
+  lnif "$APP_PATH/backup-tool/make_snapshot.sh" \
+       "$HOME/bin/make_snapshot.sh"
+  
+  lnif "$APP_PATH/backup-tool/excludes_from_backup" \
+       "$HOME/.excludes_from_backup"
+
+  notice "Successfully installed backup tool."
 }
 
 # Configure editorconfig
@@ -426,6 +443,9 @@ function main () {
       aws_credentials)
         install_aws_credentials
         ;;
+      backup-tool)
+        install_backup_tool
+        ;;
       bin)
         install_bin
         ;;
@@ -460,6 +480,7 @@ function main () {
         configure_defaults
         install_zsh_rc
         install_bin
+        install_backup_tool
         install_gnupg_config
         install_git_config
         install_editorconfig
