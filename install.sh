@@ -254,9 +254,15 @@ function install_git_config() {
 
   must_program_exists "git"
 
-  notice "Installing gitconfig..."
+  notice "Installing git defaults and config..."
 
-  cpif "$APP_PATH/git/gitconfig" \
+  lnif "$APP_PATH/git/gitattributes" \
+       "$HOME/.gitattributes"
+
+  lnif "$APP_PATH/git/gitignore" \
+       "$HOME/.gitignore"
+
+  lnif "$APP_PATH/git/gitconfig" \
        "$HOME/.gitconfig"
 
   notice "Successfully installed gitconfig."

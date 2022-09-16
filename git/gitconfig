@@ -1,5 +1,11 @@
+[user]
+	name = pacoorozco
+	email = paco@pacoorozco.info
+	signingkey = 0x3AAE8432AEA1D738
+
 [core]
 	editor = vim
+
 [alias]
 
 	# branch
@@ -80,11 +86,13 @@
 	st = status --short --branch
 	throw = reset --hard HEAD
 	unstage = reset --soft HEAD --   # fileName here
+
 [color]
 	diff = auto
 	status = auto
 	branch = auto
 	ui = auto
+
 [color "diff"]
 	meta = yellow bold
 	commit = green bold
@@ -92,9 +100,7 @@
 	old = red bold
 	new = green bold
 	whitespace = red reverse
+
 [push]
 	default = simple
-[user]
-	name = pacoorozco
-	email = paco@pacoorozco.info
-	signingkey = 0x3AAE8432AEA1D738
+
