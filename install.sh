@@ -248,6 +248,9 @@ function install_backup_tool() {
 
   lnif "$APP_PATH/backup-tool/make_snapshot.sh" \
        "$HOME/bin/make_snapshot.sh"
+
+  lnif "$APP_PATH/backup-tool/do_backup.sh" \
+       "$HOME/bin/do_backup.sh"
   
   lnif "$APP_PATH/backup-tool/excludes_from_backup" \
        "$HOME/.excludes_from_backup"
@@ -419,9 +422,6 @@ function install_yams_credentials() {
 # Configure some defaults
 function configure_defaults() {
   notice "Configuring some defaults ..."
-
-  lnif "$APP_PATH/defaults/excludes_from_backup" \
-       "$HOME/.excludes_from_backup"
 
   lnif "$APP_PATH/defaults/profile" \
        "$HOME/.profile"
