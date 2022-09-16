@@ -99,6 +99,7 @@ function show_help () {
     ${B}gnupg${N}             Configure GNUPG
     ${B}git_config${N}        Configure git
     ${B}vim_rc${N}            Configure Vim
+    ${B}yams_credentials${N}  Configure YAMS credentials in .yams/credentials
     ${B}zsh_rc${N}            Install & configure oh-my-zsh
 
     ${B}all${N}               Install all dotfiles & configuration
@@ -405,6 +406,21 @@ function install_aws_credentials() {
   notice "Please open a new terminal to make configs go into effect."
 }
 
+# Configure YAMS credentials
+function install_yams_credentials() {
+
+  must_program_exists "pass"
+  must_file_exists "$HOME/.password-store/tokens/YAMS_CREDENTIALS.gpg"
+
+  notice "Installing YAMS credentials ..."
+  info "You will be asked for decryption key!"
+
+  mkdir -p "$HOME/.yams"
+  pass show tokens/YAMS_CREDENTIALS > "$HOME/.yams/credentials"
+
+  notice "Successfully installed YAMS credentials"
+}
+
 # Configure some defaults
 function configure_defaults() {
   notice "Configuring some defaults ..."
@@ -456,6 +472,9 @@ function main () {
       vim_rc)
         install_vim_rc
         ;;
+      yams_credentials)
+        install_yams_credentials
+        ;;
       all)
         configure_defaults
         install_zsh_rc
@@ -464,6 +483,7 @@ function main () {
         install_git_config
         install_editorconfig
         install_aws_credentials
+        install_yams_credentials
         install_env_private
         install_vim_rc
         ;;
