@@ -33,7 +33,7 @@ Idle_Timeout=10
 ##########################################################################
 # Program name and version
 Program_Name=$(basename "$0")
-Program_Version='0.0.4'
+Program_Version='0.0.5'
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -49,8 +49,8 @@ Log_File=''
 # 0 - Quiet, 1 - Errors, 2 - Warnings, 3 - Normal, 4 - Verbose, 9 - Debug
 Verbosity_Level=3
 
-EncFS_Path=$(which encfs)
-fusermount_Path=$(which fusermount)
+EncFS_Path=$(command -v encfs)
+fusermount_Path=$(command -v fusermount)
 
 ##########################################################################
 # Main function

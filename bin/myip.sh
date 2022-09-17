@@ -1,2 +1,3 @@
 #!/usr/bin/env bash
-echo $(curl --silent https://api.ipify.org)
+
+curl --silent https://api.ipify.org && echo 
