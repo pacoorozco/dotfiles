@@ -13,7 +13,7 @@ set -o nounset
 # Uncomment this to enable debug
 # set -o xtrace
 
-echoerr() { echo "[ERROR] $@" 1>&2; }
+echoerr() { echo "[ERROR] $*" 1>&2; }
 
 if [[ ! -d "${SOURCE}" ]]; then
     echoerr "The source folder '${SOURCE}' does NOT exist." 
