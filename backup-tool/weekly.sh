@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-SOURCE=/home/public/Backups/daily/
 DESTINATION=/home/public/Backups/weekly
+
+SOURCE=/home/public/Backups/daily
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -28,6 +29,12 @@ echo "Doing rsync ${SOURCE} to ${DESTINATION}..."
 
 mkdir -p "${DESTINATION}"
 
-rsync --human-readable --info=progress2 --archive --delete "${SOURCE}" "${DESTINATION}"
+# The last '/' is important. It will be added if it's not present.
+RSYNC_SRC=${SOURCE}
+if [[ "${RSYNC_SRC: -1}" != "/" ]]; then
+    RSYNC_SRC="${RSYNC_SRC}/"
+fi
+
+rsync --human-readable --info=progress2 --archive --delete "${RSYNC_SRC}" "${DESTINATION}"
 
 echo "Backup process successfully completed for ${SOURCE}"
