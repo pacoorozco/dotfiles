@@ -427,7 +427,6 @@ go/pkg/mod/cache
 # Custom
 /Calibre Library
 /Dropbox
-/.dotfiles
 /.password-store
 /Private
 /Public

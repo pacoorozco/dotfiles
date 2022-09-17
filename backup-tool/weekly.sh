@@ -1,7 +1,7 @@
 #!/usr/bin/env bash
 
-source_dir=/home/public/Backups/daily/
-destination_dir=/home/public/Backups/weekly
+SOURCE=/home/public/Backups/daily/
+DESTINATION=/home/public/Backups/weekly
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -12,21 +12,22 @@ set -o nounset
 # Uncomment this to enable debug
 # set -o xtrace
 
+echoerr() { echo "[ERROR] $@" 1>&2; }
 
-if [[ -z "${source_dir}" ]]; then
-    echo "No source folder has been defined."
+if [[ ! -d "${SOURCE}" ]]; then
+    echoerr "The source folder '${SOURCE}' does NOT exist." 
     exit 2
 fi
 
-if [[ ! -d "${destination_dir}" ]]; then
-    echo "No destination folder has been defined."
+if [[ -z "${DESTINATION}" ]]; then
+    echoerr "No destination folder has been defined."
     exit 2
 fi
 
-echo "Doing rsync ${source_dir} to ${destination_dir}..."
+echo "Doing rsync ${SOURCE} to ${DESTINATION}..."
 
-rsync_options="--verbose --human-readable --archive --delete ${source_dir} ${destination_dir}"
-rsync ${rsync_options}
+mkdir -p "${DESTINATION}"
 
-echo "Backup process successfully completed for ${source_dir}"
-# 
+rsync --human-readable --info=progress2 --archive --delete "${SOURCE}" "${DESTINATION}"
+
+echo "Backup process successfully completed for ${SOURCE}"

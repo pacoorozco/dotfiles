@@ -1,7 +1,8 @@
 #!/usr/bin/env bash
 
-source_dir=/home/paco/
-destination_dir=/home/public/Backups/daily/paco/
+SOURCE=/home/paco/
+
+DESTINATION=/home/public/Backups/daily/paco/
 
 exclude_patterns_file=/home/paco/.excludes_from_backup
 
@@ -14,26 +15,27 @@ set -o nounset
 # Uncomment this to enable debug
 # set -o xtrace
 
+echoerr() { echo "[ERROR] $@" 1>&2; }
 
-if [[ -z "${source_dir}" ]]; then
-    echo "No source folder has been defined."
+if [[ ! -d "${SOURCE}" ]]; then
+    echoerr "The source folder '${SOURCE}' does NOT exist." 
     exit 2
 fi
 
-if [[ ! -d "${destination_dir}" ]]; then
-    echo "No destination folder has been defined."
+if [[ -z "${DESTINATION}" ]]; then
+    echoerr "No destination folder has been defined."
     exit 2
 fi
 
-if [[ -z "${exclude_patterns_file}" ]]; then
-    echo "No file for exclussions has been defined."
+if [[ ! -f "${exclude_patterns_file}" ]]; then
+    echo "No file for exclussions has been found."
     exit 2
 fi
 
-echo "Doing rsync ${source_dir} to ${destination_dir}..."
+echo "Doing rsync '${SOURCE}' to '${DESTINATION}'"
 
-rsync_options="--verbose --human-readable --archive --delete-excluded --exclude-from ${exclude_patterns_file} ${source_dir} ${destination_dir}"
-number_of_files=$(rsync --dry-run ${rsync_options} | wc -l)
-rsync ${rsync_options} | pv --line-mode --eta --progress --size "${number_of_files}" >/dev/null
+mkdir -p "${DESTINATION}"
 
-echo "Backup process successfully completed for ${source_dir}"
+rsync --human-readable --info=progress2 --archive --delete-excluded --exclude-from "${exclude_patterns_file}" "${SOURCE}" "${DESTINATION}"
+
+echo "Backup process successfully completed for ${SOURCE}"

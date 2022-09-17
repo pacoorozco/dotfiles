@@ -71,14 +71,15 @@ These scripts will be installed to `~/bin` and added to your `$PATH`:
 My personal backup solution for my `$HOME` folder (to local and external HD)
 
 * Uses `rsync` to keep snapshots of your `$HOME` folder to a local folder or external HD.
-* Keep **three older copies** which are rotated in each run. 
 * You can configure the list of files & folders to exclude from the backup. See `~/.excludes_from_backup`.
-* You can configure your destination folders. See `DESTINATION` variable in `~/bin/do_backup.sh`.
+* You can configure your destination folders. See `DESTINATION` variable in the scripts.
 
 | Script | Description |
 | --- | --- |
+| `daily.sh` | Do a daily backup (scheduled in the `crontab`) into a local folder. See `DESTINATION`. |
+| `weekly.sh` | Do a weekly backup (scheduled in the `crontab`) of the latest folder create by `daily.sh` into a local folder. See `DESTINATION`. |
 | `make_snapshot.sh` | Creates the snapshoot of the source folder and **keep three older copies** (rotated on each backup) |
-| `do_backup.sh` | Do the backup to a local folder unless `remote` argument is specified. See `DESTINATION` in this file.|
+| `do_backup.sh` | Do the backup to remote (mounted disk) using `make_snapshot.sh`. See `DESTINATION`. |
 
 ### DNS Over TLS using `systemd`
 

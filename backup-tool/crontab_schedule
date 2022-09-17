@@ -1,0 +1,3 @@
+# backup-tool: daily & weekly backups of the ~ folder.
+0 7 * * * /home/paco/bin/backup-tool/daily.sh
+0 8 * * 5 /home/paco/bin/backup-tool/weekly.sh

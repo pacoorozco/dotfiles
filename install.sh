@@ -244,16 +244,24 @@ function install_backup_tool() {
 
   notice "Installing backups tool..."
 
-  mkdir -p "$HOME/bin"
+  mkdir -p "$HOME/bin/backup-tool"
 
   lnif "$APP_PATH/backup-tool/make_snapshot.sh" \
-       "$HOME/bin/make_snapshot.sh"
+       "$HOME/bin/backup-tool/make_snapshot.sh"
 
   lnif "$APP_PATH/backup-tool/do_backup.sh" \
-       "$HOME/bin/do_backup.sh"
+       "$HOME/bin/backup-tool/do_backup.sh"
+
+  lnif "$APP_PATH/backup-tool/daily.sh" \
+       "$HOME/bin/backup-tool/daily.sh"
+  
+  lnif "$APP_PATH/backup-tool/weekly.sh" \
+       "$HOME/bin/backup-tool/weekly.sh"
   
   lnif "$APP_PATH/backup-tool/excludes_from_backup" \
        "$HOME/.excludes_from_backup"
+
+  (crontab -l 2>/dev/null || true ) | awk '!/backup-tool/' | cat - "$APP_PATH/backup-tool/crontab_schedule" | crontab -
 
   notice "Successfully installed backup tool."
 }
