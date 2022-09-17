@@ -1,6 +1,6 @@
 #!/usr/bin/env bash
 
-SOURCE="/home/paco/"
+SOURCE="/home/paco"
 DESTINATION="/home/public/Backups"
 
 
@@ -9,5 +9,5 @@ if [ "$1" = "remote" ]; then
     echo "Starting remote backup to: ${DESTINATION}"
 fi
 
-make_snapshot.sh -d -b "${SOURCE}" -t "${DESTINATION}"
+make_snapshot.sh -d -b ${SOURCE} -t ${DESTINATION}
 

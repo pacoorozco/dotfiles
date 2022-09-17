@@ -27,8 +27,8 @@
 ##########################################################################
 # backup_sources: contains a list of folders to be backed up. They must be
 # separated by spaces. If a folder doesn't exists a warning will be raised.
-# e.g.: backup_sources="/home/dir1/ /home/dir2/"
-backup_sources=""
+# e.g.: backup_sources=("/home/dir1/ /home/dir2/")
+backup_sources=()
 
 # backup_destination_dir: contains an existent folder where backups will be
 # kept. This is usually a mounted external disk.
@@ -46,7 +46,7 @@ exclude_patterns_file=""
 ##########################################################################
 # Program name and version
 program_name=$(basename "$0")
-program_version='0.0.1'
+program_version='0.0.2'
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -70,17 +70,20 @@ function main () {
 	check_requirements
 
   # Check supplied arguments
-  if [[ -z "${backup_sources}" ]]; then
+  if [[ ${#backup_sources[@]} -eq 0 ]]; then
     error "No source folders has been defined to be backed up."
-    show_help
     safe_exit 2
   fi
 
-  notice "Source folders are '${backup_sources}'"
+  notice "Source folders are ${backup_sources[*]}" 
+
+  if [[ -z "${backup_destination_dir}" ]]; then
+    error "No backup destination_dir defined."
+    safe_exit 2
+  fi
 
   if [[ ! -d "${backup_destination_dir}" ]]; then
-    error "No backup destination_dir defined."
-    show_help
+    error "Backup destination dir '${backup_destination_dir}' does not exist."
     safe_exit 2
   fi
 
@@ -99,7 +102,7 @@ function main () {
     exclude_options="--exclude-from=${exclude_patterns_file}"
   fi
 
-	for source_dir in ${backup_sources}; do
+	for source_dir in "${backup_sources[@]}"; do
     notice "Going to next source ${source_dir}"
     if [[ -d "${source_dir}" ]]; then
       # Create destination_dir folder name, uppercased last part of source name
@@ -112,12 +115,12 @@ function main () {
       # destination_dir is unlinked first.  If it were not so, this would
       # copy over the other snapshot(s) too!
       debug "Doing rsync ${source_dir} to ${destination_dir}..."
-      rsync_options="--verbose --human-readable --archive --delete --delete-excluded ${exclude_options} ${source_dir} ${destination_dir}"
-      number_of_files=$(rsync --dry-run ${rsync_options} | wc -l)
-      rsync ${rsync_options} | pv --line-mode --eta --progress --size $number_of_files >/dev/null
+      rsync_options=("--verbose" "--human-readable" "--archive" "--delete" "--delete-excluded" "${exclude_options}" "${source_dir}" "${destination_dir}")
+      number_of_files=$(rsync --dry-run "${rsync_options[@]}" | wc -l)
+      rsync "${rsync_options[@]}" | pv --line-mode --eta --progress --size "${number_of_files}" >/dev/null
       info "Backup process successfully completed for ${source_dir}"
     else 
-      warning "Skipping source - invalid folder ${source_dir}"
+      warning "Skipping source - invalid folder '${source_dir}'"
     fi
   done
 
@@ -250,7 +253,7 @@ function args_management () {
         verbosity_level=0
         ;;
       b)
-        backup_sources+="${OPTARG} "
+        backup_sources+=("${OPTARG}")
         ;;
       t)
         backup_destination_dir=${OPTARG}
