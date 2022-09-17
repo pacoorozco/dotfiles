@@ -6,7 +6,7 @@
 ##########################################################################
 # Program name and version
 program_name=$(basename "$0")
-program_version='0.1.0'
+program_version='0.2.1'
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
