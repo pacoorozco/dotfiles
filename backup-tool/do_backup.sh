@@ -9,5 +9,5 @@ if [ "$1" = "remote" ]; then
     echo "Starting remote backup to: ${DESTINATION}"
 fi
 
-make_snapshot.sh -d -b ${SOURCE} -t ${DESTINATION}
+make_snapshot.sh -d -b "${SOURCE}" -t "${DESTINATION}"
 
