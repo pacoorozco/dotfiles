@@ -49,7 +49,7 @@ Log_File=''
 # 0 - Quiet, 1 - Errors, 2 - Warnings, 3 - Normal, 4 - Verbose, 9 - Debug
 Verbosity_Level=3
 
-EncFS_Path=$(comand -v encfs)
+EncFS_Path=$(command -v encfs)
 fusermount_Path=$(command -v fusermount)
 
 ##########################################################################
