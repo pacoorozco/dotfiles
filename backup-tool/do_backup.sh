@@ -3,6 +3,8 @@
 SOURCE="/home/paco"
 DESTINATION="/media/paco/BACKUP_HD/BACKUP-$(uname -n)"        
 
-echo "Starting remote backup to: ${DESTINATION}"
+#--- End of configuration ---
 
-make_snapshot.sh -d -b "${SOURCE}" -t "${DESTINATION}"
+script_directory=$( dirname -- "$0"; )
+
+"$script_directory/make_snapshot.sh" --source "${SOURCE}" --target "${DESTINATION}"

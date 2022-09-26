@@ -63,7 +63,6 @@ log_file=""
 # 0 - Quiet, 1 - Errors, 2 - Warnings, 3 - Normal, 4 - Verbose, 9 - Debug
 verbosity_level=3
 
-disable_backup_rotation=false
 current_date=$(date "+%Y%m%d")
 
 ##########################################################################
@@ -79,15 +78,15 @@ function main() {
     safe_exit 2
   fi
 
-  notice "Source folders are ${backup_sources[*]}"
+  notice "Source folders are: ${backup_sources[*]}"
 
   if [[ -z "${backup_destination_dir}" ]]; then
-    error "No backup destination_dir defined."
+    error "No target folder has been defined to backup to."
     safe_exit 2
   fi
 
   if [[ ! -d "${backup_destination_dir}" ]]; then
-    error "Backup destination dir '${backup_destination_dir}' does not exist."
+    error "Target folder does not exist: ${backup_destination_dir}"
     safe_exit 2
   fi
 
@@ -98,7 +97,7 @@ function main() {
     rotate_backup_targets
   fi
 
-  notice "Destination folder is ${backup_destination_dir_at_runtime}"
+  notice "Destination folder is '${backup_destination_dir_at_runtime}'."
 
   local exclude_options=""
   if [[ -z "${exclude_patterns_file}" ]] &&
@@ -107,15 +106,18 @@ function main() {
   fi
 
   if [[ -n "${exclude_patterns_file}" ]]; then
-    notice "Using exclusions file ${exclude_patterns_file}"
+    notice "Using exclusions file: ${exclude_patterns_file}"
     exclude_options="--exclude-from=${exclude_patterns_file}"
   fi
 
   for source_dir in "${backup_sources[@]}"; do
-    notice "Going to next source ${source_dir}"
+
+    notice "Going to next source: ${source_dir}"
+
     if [[ -d "${source_dir}" ]]; then
       # Create destination_dir folder name, uppercased last part of source name
       destination_dir="${backup_destination_dir_at_runtime}/$(basename "${source_dir}" | tr '[:lower:]' '[:upper:]')"
+      
       debug "Creating backup destination folder: ${destination_dir}"
       mkdir --parents "${destination_dir}"
 
@@ -123,13 +125,16 @@ function main() {
       # rsync behaves like cp --remove-destination_dir by default, so the
       # destination_dir is unlinked first.  If it were not so, this would
       # copy over the other snapshot(s) too!
-      debug "Doing rsync ${source_dir} to ${destination_dir}..."
+      debug "Doing rsync '${source_dir}' to '${destination_dir}'..."
+
       rsync_options=("--verbose" "--human-readable" "--archive" "--delete" "--delete-excluded" "${exclude_options}" "${source_dir}" "${destination_dir}")
       number_of_files=$(rsync --dry-run "${rsync_options[@]}" | wc -l)
+      
       rsync "${rsync_options[@]}" | pv --line-mode --eta --progress --size "${number_of_files}" >/dev/null
-      info "Backup process successfully completed for ${source_dir}"
+      
+      info "Backup process successfully completed for '${source_dir}'."
     else
-      warning "Skipping source - invalid folder '${source_dir}'"
+      warning "Skipping source - invalid folder '${source_dir}'."
     fi
   done
 
@@ -225,32 +230,32 @@ function show_help() {
 
     ${B}Options:${N}
 
-    ${B}-h${N}  Display this help message
+    ${B}-h, --help${N}     Display this help message
 
-    ${B}-V${N}  Show version information
+    ${B}-V, --version${N}  Show version information
 
-    ${B}-v${N}  ${U}number${RU}
+    ${B}-v, --verbose${N} ${U}number${RU}
     Set VERBOSITY level. Use 0 to 9, where default is 3
 
-    ${B}-d${N}  Enable debug information
+    ${B}-d, --debug${N}    Enable debug information
 
-    ${B}-q${N}  Quiet
+    ${B}-q, --quiet${N}    Quiet
 
-    ${B}-e${N}  ${U}file${RU}
+    ${B}-e, --excludes${N} ${U}file${RU}
     This option specifies a FILE that contains exclude patterns (one per line). Blank lines in
     the file and lines starting with ’;’ or ’#’ are ignored. If FILE is -, the list will be
     read from standard input. It will use ${U}\$HOME/.excludes_from_backup${RU} otherwise.
 
-    ${B}-b${N}  ${U}source_folder${RU}
+    ${B}-s, --source${N} ${U}source_folder${RU}
     Mandatory. This is the path of folder to be backed up. You can use this option as many times
     as folders you want to back up.
 
-    ${B}-t${N}  ${U}destination_folder${RU}
+    ${B}-t, --target${N} ${U}destination_folder${RU}
     Mandatory. This is the path where snapshots will be kept.
 
     ${B}Examples:${N}
 
-    \$ ${program_name} -b /home/user1 -b /home/user2 -t /mnt/backup_hd
+    \$ ${program_name} --source /home/user1 --source /home/user2 --target /mnt/backup_hd
     Minimal options. Will backup ${U}/home/user1${RU} and ${U}/home/user2${RU} into ${U}/mnt/backup_hd${RU}
 
 EOF
@@ -259,48 +264,95 @@ EOF
 
 # Manage arguments and configure variables according to it
 function args_management() {
-  local OPTIND=1
-  while getopts "hdqVv:b:t:e:" OPTION; do
-    case "${OPTION}" in
-    h)
+
+  while [ $# -gt 0 ]; do
+
+    case $1 in
+    -h | -\? | --help)
       show_help
-      safe_exit 1
+      safe_exit 0
       ;;
-    V)
+    -V | --version)
       show_version
       safe_exit 0
       ;;
-    v)
-      if [[ ! ${OPTARG} =~ ^[0-9]+$ ]]; then
-        die -e 1 "Bad verbose level"
-      else
-        verbosity_level=${OPTARG}
-      fi
-      ;;
-    d)
+    -d | --debug)
       verbosity_level=${LOG_LEVELS['debug']}
       ;;
-    q)
+    -q | --quiet)
       verbosity_level=0
       ;;
-    b)
-      backup_sources+=("${OPTARG}")
+    -v | --verbose)
+      if [[ $2 =~ ^[0-9]+$ ]]; then
+        verbosity_level=$2
+        shift
+      else
+        die -e 2 "'--verbose' requires a level [0-9]."
+      fi
       ;;
-    t)
-      backup_destination_dir=${OPTARG}
+    --verbose=?*)
+      verbosity_level=("${1#*=}") # Delete everything up to "=" and assign the remainder.
       ;;
-    e)
-      exclude_patterns_file=${OPTARG}
-      [[ ! -r "${exclude_patterns_file}" ]] && die -e 2 "Invalid exclude patterns file"
+    --verbose=) # Handle the case of an empty --verbose=
+      die -e 2 "'--verbose=' requires a level [0-9]."
       ;;
-    '?')
-      show_help >&2
-      exit 1
+    -s | --source)
+      if [ -n "${2-}" ]; then
+        backup_sources+=("$2")
+        shift
+      else
+        die -e 2 "'--source' requires an existent directory."
+      fi
+      ;;
+    --source=?*)
+      backup_sources+=("${1#*=}") # Delete everything up to "=" and assign the remainder.
+      ;;
+    --source=) # Handle the case of an empty --source=
+      die -e 2 "'--source' requires an existent directory."
+      ;;
+    -t | --target)
+      if [ -n "${2-}" ]; then
+        backup_destination_dir=$2
+        shift
+      else
+        die -e 2 "'--target' requires an existent directory."
+      fi
+      ;;
+    --target=?*)
+      backup_destination_dir=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --target=) # Handle the case of an empty --target=
+      die -e 2 "'--target' requires an existent directory."
+      ;;
+    -e | --excludes)
+      if [ -n "${2-}" ]; then
+        exclude_patterns_file=$2
+        shift
+      else
+        die -e 2 "'--excludes' requires an existent file."
+      fi
+      ;;
+    --excludes=?*)
+      exclude_patterns_file=${1#*=} # Delete everything up to "=" and assign the remainder.
+      ;;
+    --excludes=) # Handle the case of an empty --excludes=
+      die -e 2 "'--excludes' requires an existent file."
+      ;;
+    --) # End of all options.
+      shift
+      break
+      ;;
+    -?*)
+      warning "Unknown option (ignored): $1"
+      ;;
+    *) # Default case: No more options, so break out of the loop.
+      break
       ;;
     esac
+
+    shift
+
   done
-  # Shift off the options and optional --.
-  shift "$((OPTIND - 1))"
 }
 
 # Check if requirements are satisfied
