@@ -1,4 +1,5 @@
 #!/usr/bin/env bash
+
 ##########################################################################
 # Shellscript:  Backup a set of folders to a directory using rsync
 # Author     :  Paco Orozco <paco@pacoorozco.info>
@@ -35,7 +36,7 @@ backup_sources=()
 # e.g.: backup_destination_dir=/mnt/backup_hd
 backup_destination_dir=""
 
-# exclude_patterns_file: contains a list of files and folders to be excluded from 
+# exclude_patterns_file: contains a list of files and folders to be excluded from
 # backup. You can create a file with common exclusions using this command:
 # wget https://raw.githubusercontent.com/rubo77/rsync-homedir-excludes/master/rsync-homedir-excludes.txt -O /tmp/ignorelist
 # e.g.: Excludes_File=/tmp/ignorelist
@@ -46,7 +47,7 @@ exclude_patterns_file=""
 ##########################################################################
 # Program name and version
 program_name=$(basename "$0")
-program_version='0.0.2'
+program_version='0.1.0'
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -62,12 +63,15 @@ log_file=""
 # 0 - Quiet, 1 - Errors, 2 - Warnings, 3 - Normal, 4 - Verbose, 9 - Debug
 verbosity_level=3
 
+disable_backup_rotation=false
+current_date=$(date "+%Y%m%d")
+
 ##########################################################################
 # Main function
 ##########################################################################
-function main () {
-	args_management "$@"
-	check_requirements
+function main() {
+  args_management "$@"
+  check_requirements
 
   # Check supplied arguments
   if [[ ${#backup_sources[@]} -eq 0 ]]; then
@@ -75,7 +79,7 @@ function main () {
     safe_exit 2
   fi
 
-  notice "Source folders are ${backup_sources[*]}" 
+  notice "Source folders are ${backup_sources[*]}"
 
   if [[ -z "${backup_destination_dir}" ]]; then
     error "No backup destination_dir defined."
@@ -87,13 +91,18 @@ function main () {
     safe_exit 2
   fi
 
-  notice "Destination folder is ${backup_destination_dir}"
+  backup_destination_dir_at_runtime="${backup_destination_dir}/backup-${current_date}.LATEST"
 
-	rotate_backup_targets
+  # Avoid to rotate folders when is not needed (eg. running the command several times per day)
+  if [[ ! -d "${backup_destination_dir_at_runtime}" ]]; then
+    rotate_backup_targets
+  fi
+
+  notice "Destination folder is ${backup_destination_dir_at_runtime}"
 
   local exclude_options=""
-  if [[ -z "${exclude_patterns_file}" ]] \
-     && [[ -r "$HOME/.excludes_from_backup" ]]; then
+  if [[ -z "${exclude_patterns_file}" ]] &&
+    [[ -r "$HOME/.excludes_from_backup" ]]; then
     exclude_patterns_file=$HOME/.excludes_from_backup
   fi
 
@@ -102,11 +111,11 @@ function main () {
     exclude_options="--exclude-from=${exclude_patterns_file}"
   fi
 
-	for source_dir in "${backup_sources[@]}"; do
+  for source_dir in "${backup_sources[@]}"; do
     notice "Going to next source ${source_dir}"
     if [[ -d "${source_dir}" ]]; then
       # Create destination_dir folder name, uppercased last part of source name
-      destination_dir="${backup_destination_dir}/backup.0/$(basename "${source_dir}" | tr '[:lower:]' '[:upper:]')"
+      destination_dir="${backup_destination_dir_at_runtime}/$(basename "${source_dir}" | tr '[:lower:]' '[:upper:]')"
       debug "Creating backup destination folder: ${destination_dir}"
       mkdir --parents "${destination_dir}"
 
@@ -119,22 +128,19 @@ function main () {
       number_of_files=$(rsync --dry-run "${rsync_options[@]}" | wc -l)
       rsync "${rsync_options[@]}" | pv --line-mode --eta --progress --size "${number_of_files}" >/dev/null
       info "Backup process successfully completed for ${source_dir}"
-    else 
+    else
       warning "Skipping source - invalid folder '${source_dir}'"
     fi
   done
 
-	# Update the mtime of backup.0 to reflect the snapshot time
-	touch "${backup_destination_dir}/backup.0"
-
-	safe_exit
+  safe_exit
 }
 
 ##########################################################################
 # Functions
 ##########################################################################
 # Do every cleanup task before exit.
-function safe_exit () {
+function safe_exit() {
   local _error_code=${1:-0}
   exit "${_error_code}"
 }
@@ -143,13 +149,14 @@ function safe_exit () {
 declare -A LOG_LEVELS
 LOG_LEVELS=([error]=1 [warning]=2 [notice]=3 [info]=4 [debug]=9)
 
-function _alert () {
+function _alert() {
   # TODO: This variables are reserved for future use
-  local color=""; local reset=""
+  local color=""
+  local reset=""
 
   # Print message to log file. Debug messages are not printed.
   if [[ -n "${log_file}" ]] && [[ "${1}" != "debug" ]]; then
-    echo -e "$(date +"%d-%m-%Y %X") $(printf "[%s]" "${1}") ${_message}" >> "${log_file}"
+    echo -e "$(date +"%d-%m-%Y %X") $(printf "[%s]" "${1}") ${_message}" >>"${log_file}"
   fi
 
   # Print to console depending of verbosity level
@@ -159,33 +166,57 @@ function _alert () {
 }
 
 # Print a message and exit
-function die () {
+function die() {
   local _error_code=0
-  [[ "${1}" = "-e" ]] && shift; _error_code=${1}; shift
+  [[ "${1}" = "-e" ]] && shift
+  _error_code=${1}
+  shift
   error "${*} Exiting."
   safe_exit "${_error_code}"
 }
 
 # Deal with severity level messages
-function error ()     { local _message="${*}"; _alert error >&2; }
-function warning ()   { local _message="${*}"; _alert warning >&2; }
-function notice ()    { local _message="${*}"; _alert notice; }
-function info ()      { local _message="${*}"; _alert info; }
-function debug ()     { local _message="${*}"; _alert debug; }
-function input()      { local _message="${*}"; _alert info; }
+function error() {
+  local _message="${*}"
+  _alert error >&2
+}
+function warning() {
+  local _message="${*}"
+  _alert warning >&2
+}
+function notice() {
+  local _message="${*}"
+  _alert notice
+}
+function info() {
+  local _message="${*}"
+  _alert info
+}
+function debug() {
+  local _message="${*}"
+  _alert debug
+}
+function input() {
+  local _message="${*}"
+  _alert info
+}
 
 # Show program version
-function show_version () {
+function show_version() {
   echo "${program_name} v${program_version}"
 }
 
 # Usage info
-function show_help () {
+function show_help() {
   # Variables for formatting
-  local U; U=$(tput smul)  # Underline
-  local RU; RU=$(tput rmul) # Remove underline
-  local B; B=$(tput bold)  # Bold
-  local N; N=$(tput sgr0)  # Normal
+  local U
+  U=$(tput smul) # Underline
+  local RU
+  RU=$(tput rmul) # Remove underline
+  local B
+  B=$(tput bold) # Bold
+  local N
+  N=$(tput sgr0) # Normal
 
   cat <<-EOF
     ${B}Usage${N}:
@@ -227,44 +258,44 @@ EOF
 }
 
 # Manage arguments and configure variables according to it
-function args_management () {
+function args_management() {
   local OPTIND=1
   while getopts "hdqVv:b:t:e:" OPTION; do
     case "${OPTION}" in
-      h)
-        show_help
-        safe_exit 1
-        ;;
-      V)
-        show_version
-        safe_exit 0
-        ;;
-      v)
-        if [[ ! ${OPTARG} =~ ^[0-9]+$ ]] ; then
-          die -e 1 "Bad verbose level"
-        else
-          verbosity_level=${OPTARG}
-        fi
-        ;;
-      d)
-        verbosity_level=${LOG_LEVELS['debug']}
-        ;;
-      q)
-        verbosity_level=0
-        ;;
-      b)
-        backup_sources+=("${OPTARG}")
-        ;;
-      t)
-        backup_destination_dir=${OPTARG}
-        ;;
-      e)
-        exclude_patterns_file=${OPTARG}
-        [[ ! -r "${exclude_patterns_file}" ]] && die -e 2 "Invalid exclude patterns file"
-        ;;
-      '?')
-        show_help >&2
-        exit 1
+    h)
+      show_help
+      safe_exit 1
+      ;;
+    V)
+      show_version
+      safe_exit 0
+      ;;
+    v)
+      if [[ ! ${OPTARG} =~ ^[0-9]+$ ]]; then
+        die -e 1 "Bad verbose level"
+      else
+        verbosity_level=${OPTARG}
+      fi
+      ;;
+    d)
+      verbosity_level=${LOG_LEVELS['debug']}
+      ;;
+    q)
+      verbosity_level=0
+      ;;
+    b)
+      backup_sources+=("${OPTARG}")
+      ;;
+    t)
+      backup_destination_dir=${OPTARG}
+      ;;
+    e)
+      exclude_patterns_file=${OPTARG}
+      [[ ! -r "${exclude_patterns_file}" ]] && die -e 2 "Invalid exclude patterns file"
+      ;;
+    '?')
+      show_help >&2
+      exit 1
       ;;
     esac
   done
@@ -273,12 +304,12 @@ function args_management () {
 }
 
 # Check if requirements are satisfied
-function check_requirements () {
+function check_requirements() {
   local REQUIRED_BINARIES="rsync pv"
-  
+
   for binary in $REQUIRED_BINARIES; do
     if [[ $(type -P "${binary}") ]]; then
-      info "${binary} has been found in PATH"
+      debug "${binary} has been found in PATH"
     else
       die -e 127 "${binary} has NOT been found in PATH."
     fi
@@ -286,26 +317,44 @@ function check_requirements () {
 }
 
 # Rotating snapshots of backup_destination_dir to keep 3 versions
-function rotate_backup_targets () {
-	if [[ -d "${backup_destination_dir}/backup.3" ]]; then
-    debug "Deleting oldest snapshot ${backup_destination_dir}/backup.3"
-    rm --recursive --force "${backup_destination_dir}/backup.3"
-  fi
+function rotate_backup_targets() {
+  revisions=("LATEST-3" "LATEST-2" "LATEST-1" "LATEST")
 
-	if [[ -d "${backup_destination_dir}/backup.2" ]]; then
-    debug "Rotating snapshot ${backup_destination_dir}/backup.2"
-    mv "${backup_destination_dir}/backup.2" "${backup_destination_dir}/backup.3"
-  fi
+  last_revision=${revisions[${#revisions[@]} - 1]}
+  previous=""
 
-  if [[ -d "${backup_destination_dir}/backup.1" ]]; then
-    debug "Rotating snapshot ${backup_destination_dir}/backup.1"
-    mv "${backup_destination_dir}/backup.1" "${backup_destination_dir}/backup.2"
-  fi
+  for revision in "${revisions[@]}"; do
 
-	if [[ -d "${backup_destination_dir}/backup.0" ]]; then
-    debug "Rotating last created snapshot "
-    cp --archive --link "${backup_destination_dir}/backup.0" "${backup_destination_dir}/backup.1"
-  fi
+    backup_revision=$(find "${backup_destination_dir}" -maxdepth 1 -name "backup-*.${revision}" -print | sort -r | head -1)
+
+    if [ -z "${backup_revision}" ]; then
+      notice "Snapshot was not found for revision: ${revision}."
+      previous=$revision
+      continue
+    fi
+
+    if [ -z "${previous}" ]; then
+      debug "Deleting the oldest snapshot: ${backup_revision}"
+      rm --recursive --force "${backup_revision}"
+      previous=$revision
+      continue
+    fi
+
+    # The latest snapshot have a different treatment.
+    if [ "$revision" == "$last_revision" ]; then
+      debug "Copying the latest snapshop: ${backup_revision} --> ${backup_revision::-7}.${previous}"
+      cp --archive --link "${backup_revision}" "${backup_revision::-7}.${previous}"
+      mv "${backup_revision}" "${backup_destination_dir}/backup-${current_date}.${revision}"
+      previous=$revision
+      continue
+    fi
+
+    # Normal snapshots are kept.
+    debug "Moving snapshots: ${backup_revision} --> ${backup_revision::-9}.${previous}"
+    mv "${backup_revision}" "${backup_revision::-9}.${previous}"
+    previous=$revision
+
+  done
 }
 
 ##########################################################################
