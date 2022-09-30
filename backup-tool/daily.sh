@@ -15,33 +15,50 @@ set -o nounset
 # Uncomment this to enable debug
 # set -o xtrace
 
+readonly DESTINATION
+readonly SOURCE
+readonly EXCLUDE_PATTERNS_FILE
+
+##########################################################################
+# Main function
+##########################################################################
+main() {
+    if [[ ! -d "${SOURCE}" ]]; then
+        echoerr "The source folder '${SOURCE}' does NOT exist."
+        exit 2
+    fi
+
+    if [[ -z "${DESTINATION}" ]]; then
+        echoerr "No destination folder has been defined."
+        exit 2
+    fi
+
+    if [[ ! -f "${EXCLUDE_PATTERNS_FILE}" ]]; then
+        echo "No file for exclussions has been found."
+        exit 2
+    fi
+
+    echo "Doing rsync '${SOURCE}' to '${DESTINATION}'"
+
+    mkdir -p "${DESTINATION}"
+
+    # The last '/' is important to apply the `EXCLUDE_PATTERS_FILE` properly. It will be added if it's not present.
+    local rsync_source=${SOURCE}
+    if [[ "${rsync_source: -1}" != "/" ]]; then
+        rsync_source="${rsync_source}/"
+    fi
+
+    rsync --human-readable --info=progress2 --archive --delete-excluded --exclude-from "${EXCLUDE_PATTERNS_FILE}" "${rsync_source}" "${DESTINATION}"
+
+    echo "Backup process successfully completed for ${SOURCE}"
+}
+
+##########################################################################
+# Functions
+##########################################################################
 echoerr() { echo "[ERROR] $*" 1>&2; }
 
-if [[ ! -d "${SOURCE}" ]]; then
-    echoerr "The source folder '${SOURCE}' does NOT exist." 
-    exit 2
-fi
-
-if [[ -z "${DESTINATION}" ]]; then
-    echoerr "No destination folder has been defined."
-    exit 2
-fi
-
-if [[ ! -f "${EXCLUDE_PATTERNS_FILE}" ]]; then
-    echo "No file for exclussions has been found."
-    exit 2
-fi
-
-echo "Doing rsync '${SOURCE}' to '${DESTINATION}'"
-
-mkdir -p "${DESTINATION}"
-
-# The last '/' is important to apply the `EXCLUDE_PATTERS_FILE` properly. It will be added if it's not present.
-RSYNC_SRC=${SOURCE}
-if [[ "${RSYNC_SRC: -1}" != "/" ]]; then
-    RSYNC_SRC="${RSYNC_SRC}/"
-fi
-
-rsync --human-readable --info=progress2 --archive --delete-excluded --exclude-from "${EXCLUDE_PATTERNS_FILE}" "${RSYNC_SRC}" "${DESTINATION}"
-
-echo "Backup process successfully completed for ${SOURCE}"
+##########################################################################
+# Main code
+##########################################################################
+main

@@ -26,28 +26,29 @@
 ##########################################################################
 # CONFIGURATION
 ##########################################################################
-# backup_sources: contains a list of folders to be backed up. They must be
+# BACKUP_SOURCES: contains a list of folders to be backed up. They must be
 # separated by spaces. If a folder doesn't exists a warning will be raised.
 # e.g.: backup_sources=("/home/dir1/ /home/dir2/")
-backup_sources=()
+BACKUP_SOURCES=()
 
-# backup_destination_dir: contains an existent folder where backups will be
+# BACKUP_TARGET: contains an existent folder where backups will be
 # kept. This is usually a mounted external disk.
-# e.g.: backup_destination_dir=/mnt/backup_hd
-backup_destination_dir=""
+# e.g.: BACKUP_TARGET=/mnt/backup_hd
+BACKUP_TARGET=""
 
-# exclude_patterns_file: contains a list of files and folders to be excluded from
+# EXCLUDE_PATTERNS_FILE: contains a list of files and folders to be excluded from
 # backup. You can create a file with common exclusions using this command:
 # wget https://raw.githubusercontent.com/rubo77/rsync-homedir-excludes/master/rsync-homedir-excludes.txt -O /tmp/ignorelist
 # e.g.: Excludes_File=/tmp/ignorelist
-exclude_patterns_file=""
+EXCLUDE_PATTERNS_FILE=""
 
 ##########################################################################
 # DO NOT MODIFY BEYOND THIS LINE
 ##########################################################################
-# Program name and version
-program_name=$(basename "$0")
-program_version='0.1.0'
+PROGRAM_NAME=$(basename "$0")
+PROGRAM_VERSION='0.1.0'
+
+REQUIRED_BINARIES="rsync pv"
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -59,65 +60,74 @@ set -o nounset
 # set -o xtrace
 
 # Initialize variables in order to be used later
-log_file=""
+LOG_FILE=""
 # 0 - Quiet, 1 - Errors, 2 - Warnings, 3 - Normal, 4 - Verbose, 9 - Debug
-verbosity_level=3
+VERBOSITY_LEVEL=3
 
-current_date=$(date "+%Y%m%d")
+CURRENT_DATE=$(date "+%Y%m%d")
+
+readonly PROGRAM_NAME
+readonly PROGRAM_VERSION
+readonly REQUIRED_BINARIES
+readonly LOG_FILE
+readonly CURRENT_DATE
 
 ##########################################################################
 # Main function
 ##########################################################################
 function main() {
   args_management "$@"
+
   check_requirements
 
   # Check supplied arguments
-  if [[ ${#backup_sources[@]} -eq 0 ]]; then
+  if [[ ${#BACKUP_SOURCES[@]} -eq 0 ]]; then
     error "No source folders has been defined to be backed up."
     safe_exit 2
   fi
 
-  notice "Source folders are: ${backup_sources[*]}"
+  notice "Source folders are: ${BACKUP_SOURCES[*]}"
 
-  if [[ -z "${backup_destination_dir}" ]]; then
+  if [[ -z "${BACKUP_TARGET}" ]]; then
     error "No target folder has been defined to backup to."
     safe_exit 2
   fi
 
-  if [[ ! -d "${backup_destination_dir}" ]]; then
-    error "Target folder does not exist: ${backup_destination_dir}"
+  if [[ ! -d "${BACKUP_TARGET}" ]]; then
+    error "Target folder does not exist: ${BACKUP_TARGET}"
     safe_exit 2
   fi
 
-  backup_destination_dir_at_runtime="${backup_destination_dir}/backup-${current_date}.LATEST"
+  local -r backup_target_at_runtime="${BACKUP_TARGET}/backup-${CURRENT_DATE}.LATEST"
 
   # Avoid to rotate folders when is not needed (eg. running the command several times per day)
-  if [[ ! -d "${backup_destination_dir_at_runtime}" ]]; then
+  if [[ ! -d "${backup_target_at_runtime}" ]]; then
     rotate_backup_targets
   fi
 
-  notice "Destination folder is '${backup_destination_dir_at_runtime}'."
+  notice "Destination folder is '${backup_target_at_runtime}'."
 
   local exclude_options=""
-  if [[ -z "${exclude_patterns_file}" ]] &&
+  if [[ -z "${EXCLUDE_PATTERNS_FILE}" ]] &&
     [[ -r "$HOME/.excludes_from_backup" ]]; then
-    exclude_patterns_file=$HOME/.excludes_from_backup
+    EXCLUDE_PATTERNS_FILE=$HOME/.excludes_from_backup
   fi
 
-  if [[ -n "${exclude_patterns_file}" ]]; then
-    notice "Using exclusions file: ${exclude_patterns_file}"
-    exclude_options="--exclude-from=${exclude_patterns_file}"
+  local exclude_options
+  if [[ -n "${EXCLUDE_PATTERNS_FILE}" ]]; then
+    notice "Using exclusions file: ${EXCLUDE_PATTERNS_FILE}"
+    exclude_options="--exclude-from=${EXCLUDE_PATTERNS_FILE}"
   fi
 
-  for source_dir in "${backup_sources[@]}"; do
+  local source_dir
+  for source_dir in "${BACKUP_SOURCES[@]}"; do
 
     notice "Going to next source: ${source_dir}"
 
     if [[ -d "${source_dir}" ]]; then
       # Create destination_dir folder name, uppercased last part of source name
-      destination_dir="${backup_destination_dir_at_runtime}/$(basename "${source_dir}" | tr '[:lower:]' '[:upper:]')"
-      
+      local -r destination_dir="${backup_target_at_runtime}/$(basename "${source_dir}" | tr '[:lower:]' '[:upper:]')"
+
       debug "Creating backup destination folder: ${destination_dir}"
       mkdir --parents "${destination_dir}"
 
@@ -127,11 +137,11 @@ function main() {
       # copy over the other snapshot(s) too!
       debug "Doing rsync '${source_dir}' to '${destination_dir}'..."
 
-      rsync_options=("--verbose" "--human-readable" "--archive" "--delete" "--delete-excluded" "${exclude_options}" "${source_dir}" "${destination_dir}")
-      number_of_files=$(rsync --dry-run "${rsync_options[@]}" | wc -l)
-      
+      local -r rsync_options=("--verbose" "--human-readable" "--archive" "--delete" "--delete-excluded" "${exclude_options}" "${source_dir}" "${destination_dir}")
+      local -r number_of_files=$(rsync --dry-run "${rsync_options[@]}" | wc -l)
+
       rsync "${rsync_options[@]}" | pv --line-mode --eta --progress --size "${number_of_files}" >/dev/null
-      
+
       info "Backup process successfully completed for '${source_dir}'."
     else
       warning "Skipping source - invalid folder '${source_dir}'."
@@ -160,12 +170,12 @@ function _alert() {
   local reset=""
 
   # Print message to log file. Debug messages are not printed.
-  if [[ -n "${log_file}" ]] && [[ "${1}" != "debug" ]]; then
-    echo -e "$(date +"%d-%m-%Y %X") $(printf "[%s]" "${1}") ${_message}" >>"${log_file}"
+  if [[ -n "${LOG_FILE}" ]] && [[ "${1}" != "debug" ]]; then
+    echo -e "$(date +"%d-%m-%Y %X") $(printf "[%s]" "${1}") ${_message}" >>"${LOG_FILE}"
   fi
 
   # Print to console depending of verbosity level
-  if [[ "${verbosity_level}" -ge "${LOG_LEVELS[${1}]}" ]]; then
+  if [[ "${VERBOSITY_LEVEL}" -ge "${LOG_LEVELS[${1}]}" ]]; then
     echo -e "$(date +"%X") ${color}$(printf "[%s]" "${1}") ${_message}${reset}"
   fi
 }
@@ -208,7 +218,7 @@ function input() {
 
 # Show program version
 function show_version() {
-  echo "${program_name} v${program_version}"
+  echo "${PROGRAM_NAME} v${PROGRAM_VERSION}"
 }
 
 # Usage info
@@ -226,7 +236,7 @@ function show_help() {
   cat <<-EOF
     ${B}Usage${N}:
 
-    ${B}${program_name}${N} -b ${U}source_folder${RU} -t ${U}destination_folder${RU} [options]...
+    ${B}${PROGRAM_NAME}${N} -b ${U}source_folder${RU} -t ${U}destination_folder${RU} [options]...
 
     ${B}Options:${N}
 
@@ -255,7 +265,7 @@ function show_help() {
 
     ${B}Examples:${N}
 
-    \$ ${program_name} --source /home/user1 --source /home/user2 --target /mnt/backup_hd
+    \$ ${PROGRAM_NAME} --source /home/user1 --source /home/user2 --target /mnt/backup_hd
     Minimal options. Will backup ${U}/home/user1${RU} and ${U}/home/user2${RU} into ${U}/mnt/backup_hd${RU}
 
 EOF
@@ -277,63 +287,63 @@ function args_management() {
       safe_exit 0
       ;;
     -d | --debug)
-      verbosity_level=${LOG_LEVELS['debug']}
+      VERBOSITY_LEVEL=${LOG_LEVELS['debug']}
       ;;
     -q | --quiet)
-      verbosity_level=0
+      VERBOSITY_LEVEL=0
       ;;
     -v | --verbose)
       if [[ $2 =~ ^[0-9]+$ ]]; then
-        verbosity_level=$2
+        VERBOSITY_LEVEL=$2
         shift
       else
         die -e 2 "'--verbose' requires a level [0-9]."
       fi
       ;;
     --verbose=?*)
-      verbosity_level=("${1#*=}") # Delete everything up to "=" and assign the remainder.
+      VERBOSITY_LEVEL=("${1#*=}") # Delete everything up to "=" and assign the remainder.
       ;;
     --verbose=) # Handle the case of an empty --verbose=
       die -e 2 "'--verbose=' requires a level [0-9]."
       ;;
     -s | --source)
       if [ -n "${2-}" ]; then
-        backup_sources+=("$2")
+        BACKUP_SOURCES+=("$2")
         shift
       else
         die -e 2 "'--source' requires an existent directory."
       fi
       ;;
     --source=?*)
-      backup_sources+=("${1#*=}") # Delete everything up to "=" and assign the remainder.
+      BACKUP_SOURCES+=("${1#*=}") # Delete everything up to "=" and assign the remainder.
       ;;
     --source=) # Handle the case of an empty --source=
       die -e 2 "'--source' requires an existent directory."
       ;;
     -t | --target)
       if [ -n "${2-}" ]; then
-        backup_destination_dir=$2
+        BACKUP_TARGET=$2
         shift
       else
         die -e 2 "'--target' requires an existent directory."
       fi
       ;;
     --target=?*)
-      backup_destination_dir=${1#*=} # Delete everything up to "=" and assign the remainder.
+      BACKUP_TARGET=${1#*=} # Delete everything up to "=" and assign the remainder.
       ;;
     --target=) # Handle the case of an empty --target=
       die -e 2 "'--target' requires an existent directory."
       ;;
     -e | --excludes)
       if [ -n "${2-}" ]; then
-        exclude_patterns_file=$2
+        EXCLUDE_PATTERNS_FILE=$2
         shift
       else
         die -e 2 "'--excludes' requires an existent file."
       fi
       ;;
     --excludes=?*)
-      exclude_patterns_file=${1#*=} # Delete everything up to "=" and assign the remainder.
+      EXCLUDE_PATTERNS_FILE=${1#*=} # Delete everything up to "=" and assign the remainder.
       ;;
     --excludes=) # Handle the case of an empty --excludes=
       die -e 2 "'--excludes' requires an existent file."
@@ -357,27 +367,26 @@ function args_management() {
 
 # Check if requirements are satisfied
 function check_requirements() {
-  local REQUIRED_BINARIES="rsync pv"
-
-  for binary in $REQUIRED_BINARIES; do
-    if [[ $(type -P "${binary}") ]]; then
-      debug "${binary} has been found in PATH"
-    else
+  local binary
+  for binary in ${REQUIRED_BINARIES}; do
+    if ! command -v "${binary}" >/dev/null 2>&1; then
       die -e 127 "${binary} has NOT been found in PATH."
     fi
   done
 }
 
-# Rotating snapshots of backup_destination_dir to keep 3 versions
+# Rotating snapshots of BACKUP_TARGET to keep 3 versions
 function rotate_backup_targets() {
-  revisions=("LATEST-3" "LATEST-2" "LATEST-1" "LATEST")
+  local -r revisions=("LATEST-3" "LATEST-2" "LATEST-1" "LATEST")
 
-  last_revision=${revisions[${#revisions[@]} - 1]}
-  previous=""
+  local -r last_revision=${revisions[${#revisions[@]} - 1]}
+  local previous=""
 
+  local revision
   for revision in "${revisions[@]}"; do
 
-    backup_revision=$(find "${backup_destination_dir}" -maxdepth 1 -name "backup-*.${revision}" -print | sort -r | head -1)
+    local backup_revision
+    backup_revision=$(find "${BACKUP_TARGET}" -maxdepth 1 -name "backup-*.${revision}" -print | sort -r | head -1)
 
     if [ -z "${backup_revision}" ]; then
       notice "Snapshot was not found for revision: ${revision}."
@@ -396,7 +405,7 @@ function rotate_backup_targets() {
     if [ "$revision" == "$last_revision" ]; then
       debug "Copying the latest snapshop: ${backup_revision} --> ${backup_revision::-7}.${previous}"
       cp --archive --link "${backup_revision}" "${backup_revision::-7}.${previous}"
-      mv "${backup_revision}" "${backup_destination_dir}/backup-${current_date}.${revision}"
+      mv "${backup_revision}" "${BACKUP_TARGET}/backup-${CURRENT_DATE}.${revision}"
       previous=$revision
       continue
     fi
