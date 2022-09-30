@@ -26,20 +26,21 @@
 # Configuration variables
 
 # Path to the encrypted filesystem
-encrypted_filesystem=~/Dropbox/Encrypted
+ENCRYPTED_FILESYSTEM=~/Dropbox/Encrypted
 
 # Folder to mount the filesystem in plain
-plain_mount_point=~/Private
+PLAIN_MOUNT_POINT=~/Private
 
 # Enable automatic unmount of the filesystem after a period of inactivity (in minutes).
-idle_timeout=10
+IDLE_TIMEOUT=10
 
 ##########################################################################
 # DO NOT MODIFY BEYOND THIS LINE
 ##########################################################################
-# Program name and version
-program_name=$(basename "$0")
-program_version='0.0.6'
+PROGRAM_NAME=$(basename "$0")
+PROGRAM_VERSION='0.0.7'
+
+REQUIRED_BINARIES="encfs grep"
 
 # Script exits immediately if any command within it exits with a non-zero status
 set -o errexit
@@ -50,6 +51,15 @@ set -o nounset
 # Uncomment this to enable debug
 # set -o xtrace
 
+# declare global variables as readonly
+readonly PROGRAM_NAME
+readonly PROGRAM_VERSION
+readonly REQUIRED_BINARIES
+
+readonly ENCRYPTED_FILESYSTEM
+readonly PLAIN_MOUNT_POINT
+readonly IDLE_TIMEOUT
+
 ##########################################################################
 # Main function
 ##########################################################################
@@ -57,20 +67,15 @@ main() {
 
   check-requirements
 
-  # declare global variables as readonly
-  readonly encrypted_filesystem
-  readonly plain_mount_point
-  readonly idle_timeout
-
   while [ $# -gt 0 ]; do
 
     case $1 in
     -h | -\? | --help)
       show_help
-      safe_exit 0
+      safe_exit
       ;;
     -u | --unmount)
-      unmount_filesystem "${plain_mount_point}"
+      unmount_filesystem "${PLAIN_MOUNT_POINT}"
       safe_exit $?
       ;;
     --) # End of all options.
@@ -89,23 +94,22 @@ main() {
 
   done
 
-  if is_filesystem_mounted "${plain_mount_point}"; then
-    echo "Filesystem already mounted at ${plain_mount_point}"
-    safe_exit 0
+  if is_filesystem_mounted "${PLAIN_MOUNT_POINT}"; then
+    echo "Filesystem already mounted at ${PLAIN_MOUNT_POINT}"
+    safe_exit
   fi
 
-  mount_filesystem "${encrypted_filesystem}" "${plain_mount_point}" &&
-    echo "Filesystem was mounted at ${plain_mount_point}"
+  mount_filesystem "${ENCRYPTED_FILESYSTEM}" "${PLAIN_MOUNT_POINT}" &&
+    echo "Filesystem was mounted at ${PLAIN_MOUNT_POINT}"
 }
 
 ##########################################################################
 # Functions
 ##########################################################################
 # Check if requirements are satisfied
-function check-requirements() {
-  local -r required_binaries="encfs grep"
-
-  for binary in $required_binaries; do
+check-requirements() {
+  local binary
+  for binary in ${REQUIRED_BINARIES}; do
     if ! command -v "${binary}" >/dev/null 2>&1; then
       die -e 127 "${binary} has NOT been found in PATH."
     fi
@@ -122,7 +126,7 @@ show_help() {
   cat <<-EOF
     ${B}Usage:${N}
 
-    ${B}${program_name}${N} (v.${U}${program_version}${RU}) [options]...
+    ${B}${PROGRAM_NAME}${N} (v.${U}${PROGRAM_VERSION}${RU}) [options]...
     ${B}Options:${N}
 
     ${B}-h, --help${N}     Display this help message
@@ -131,10 +135,10 @@ show_help() {
 
     ${B}Examples:${N}
 
-    \$ ${program_name}
+    \$ ${PROGRAM_NAME}
     Minimal options. Will mount a specified EncFS into a specified mounting point.
 
-    \$ ${program_name} ${B}--unmount${N}
+    \$ ${PROGRAM_NAME} ${B}--unmount${N}
     Will umount the EncFS.
 
 EOF
@@ -152,7 +156,7 @@ mount_filesystem() {
 
   echo "Please supply the credentials to mount ${filesystem}..."
 
-  encfs --idle=${idle_timeout} "${filesystem}" "${mount_point}"
+  encfs --idle=${IDLE_TIMEOUT} "${filesystem}" "${mount_point}"
 }
 
 # Umount the mounting point
