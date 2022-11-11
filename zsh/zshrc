@@ -102,3 +102,10 @@ export GPG_TTY
 
 # Put you own environment private tokens in ~/.env_private
 # [ -f "$HOME/.env_private" ] && source $HOME/.env_private
+#
+
+# YAMS using a docker
+alias yams="docker run --rm -ti -v $HOME/.yams:/root/.yams advyams/yams-cli"
+
+# Laravel Sail
+alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
