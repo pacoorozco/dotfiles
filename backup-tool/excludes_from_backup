@@ -426,8 +426,6 @@ go/pkg/mod/cache
 
 # Custom
 /Calibre Library
-/Dropbox
-/.password-store
 /Private
 /Public
 /snap
