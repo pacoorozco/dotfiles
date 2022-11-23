@@ -3,6 +3,9 @@
 	email = paco@pacoorozco.info
 	signingkey = 0x3AAE8432AEA1D738
 
+[includeIf "gitdir:src/Adevinta/"]
+	path = ~/.git_identity_adevinta
+
 [core]
 	editor = vim
 

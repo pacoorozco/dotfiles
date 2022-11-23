@@ -294,6 +294,9 @@ function install_git_config() {
   lnif "$APP_PATH/git/gitconfig" \
        "$HOME/.gitconfig"
 
+  lnif "$APP_PATH/git/git_identify_adevinta" \
+       "$HOME/.git_identify_adevinta"
+
   notice "Successfully installed gitconfig."
   notice "Maybe you should configure your user.name, user.email and user.signingkey on .gitconfig"
 }
