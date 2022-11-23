@@ -109,3 +109,7 @@ alias yams="docker run --rm -ti -v $HOME/.yams:/root/.yams advyams/yams-cli"
 
 # Laravel Sail
 alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
+
+# fnm
+export PATH=/home/paco/.fnm:$PATH
+eval "$(fnm env --use-on-cd)"
