@@ -104,12 +104,9 @@ export GPG_TTY
 # [ -f "$HOME/.env_private" ] && source $HOME/.env_private
 #
 
-# YAMS using a docker
-alias yams="docker run --rm -ti -v $HOME/.yams:/root/.yams advyams/yams-cli"
-
 # Laravel Sail
 alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
 
 # fnm
-export PATH=/home/paco/.fnm:$PATH
+export PATH="$PATH:$HOME/.local/bin:$HOME/.fnm"
 eval "$(fnm env --use-on-cd)"
