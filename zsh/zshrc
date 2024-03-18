@@ -56,7 +56,6 @@ plugins=(
   git
   pass
   zsh-autosuggestions
-  kubectl
 )
 
 # Disable Completions Fix
