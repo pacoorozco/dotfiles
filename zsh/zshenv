@@ -1,2 +1,1 @@
-# This file is read by zsh(1)
-
+umask 077
