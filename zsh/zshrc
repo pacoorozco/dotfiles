@@ -94,14 +94,6 @@ export EDITOR='vim'
 # alias zshconfig="mate ~/.zshrc"
 # alias ohmyzsh="mate ~/.oh-my-zsh"
 
-# Use a tty for gpg
-GPG_TTY=$(tty)
-export GPG_TTY
-
-# Put you own environment private tokens in ~/.env_private
-# [ -f "$HOME/.env_private" ] && source $HOME/.env_private
-#
-
 # Laravel Sail
 alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
 
@@ -112,10 +104,6 @@ alias yams='docker run --rm -ti -v $HOME/.yams:/root/.yams -v $HOME/Downloads:/r
 export PATH="$PATH:$HOME/.local/bin:$HOME/.fnm"
 eval "$(fnm env --use-on-cd)"
 
-# krew
-export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
-
-
 export PYENV_ROOT="$HOME/.pyenv"
 command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
 eval "$(pyenv init -)"
@@ -123,8 +111,17 @@ eval "$(pyenv init -)"
 # ~~ Adevinta's One Command Line Tool Setup (v1) ~~
 # Added on 2024-01-26 14:28:31.816295 (UTC)
 # Comment out to disable shell-integration
-[ -e "/home/paco/.adv/bin/adv-shell-integration-v1.sh" ] \
-  && source "/home/paco/.adv/bin/adv-shell-integration-v1.sh"
+[[ ! -e ~/.adv/bin/adv-shell-integration-v1.sh ]] || source ~/.adv/bin/adv-shell-integration-v1.sh
+
+# Use a tty for gpg
+# When using Powerline10k, there's a know problem. See:
+# https://github.com/romkatv/powerlevel10k/?tab=readme-ov-file#how-do-i-export-gpg_tty-when-using-instant-prompt
+# GPG_TTY=$(tty)
+# export GPG_TTY
+export GPG_TTY=$TTY
+
+# Put you own environment private tokens in ~/.env_private
+[[ ! -f ~/.env_private ]] || source ~/.env_private
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
