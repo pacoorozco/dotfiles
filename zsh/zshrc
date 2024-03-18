@@ -4,11 +4,12 @@ export ZSH=/home/paco/.oh-my-zsh
 # Set name of the theme to load. Optionally, if you set this to "random"
 # it'll load a random theme each time that oh-my-zsh is loaded.
 # See https://github.com/robbyrussell/oh-my-zsh/wiki/Themes
-ZSH_THEME="powerlevel10k/powerlevel10k"
-POWERLEVEL9K_MODE='awesome-fontconfig'
-POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir vcs)
-POWERLEVEL9K_DISABLE_RPROMPT=true
-POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
+ZSH_THEME="robbyrussell"
+#ZSH_THEME="powerlevel10k/powerlevel10k"
+#POWERLEVEL9K_MODE='awesome-fontconfig'
+#POWERLEVEL9K_LEFT_PROMPT_ELEMENTS=(context dir vcs) 
+#POWERLEVEL9K_DISABLE_RPROMPT=true
+#POWERLEVEL9K_SHORTEN_DIR_LENGTH=2
 
 # Uncomment the following line to use case-sensitive completion.
 # CASE_SENSITIVE="true"
@@ -59,19 +60,20 @@ plugins=(
   git
   pass
   zsh-autosuggestions
+  kubectl
 )
 
 # Disable Completions Fix
 # Based on : https://github.com/robbyrussell/oh-my-zsh/issues/6835#issuecomment-390216875
-ZSH_DISABLE_COMPFIX=true
+#ZSH_DISABLE_COMPFIX=true
 
 source $ZSH/oh-my-zsh.sh
 
 # User configuration
 
 # Disable 'user@host' on path
-DEFAULT_USER=$USER
-prompt_context() {}
+#DEFAULT_USER=$USER
+#prompt_context() {}
 
 # export MANPATH="/usr/local/man:$MANPATH"
 
@@ -107,6 +109,23 @@ export GPG_TTY
 # Laravel Sail
 alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
 
+# YAMS
+alias yams='docker run --rm -ti -v $HOME/.yams:/root/.yams -v $HOME/Downloads:/root/Downloads advyams/yams-cli'
+
 # fnm
 export PATH="$PATH:$HOME/.local/bin:$HOME/.fnm"
 eval "$(fnm env --use-on-cd)"
+
+# krew
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+
+export PYENV_ROOT="$HOME/.pyenv"
+command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
+eval "$(pyenv init -)"
+
+# ~~ Adevinta's One Command Line Tool Setup (v1) ~~
+# Added on 2024-01-26 14:28:31.816295 (UTC)
+# Comment out to disable shell-integration
+[ -e "/home/paco/.adv/bin/adv-shell-integration-v1.sh" ] \
+  && source "/home/paco/.adv/bin/adv-shell-integration-v1.sh"
