@@ -359,7 +359,7 @@ function install_zsh_rc() {
             "$APP_PATH/zsh/oh-my-zsh"
 
   # add zsh plugin zsh-autosuggestions support
-  sync_repo "https://github.com/tarruda/zsh-autosuggestions.git" \
+  sync_repo "https://github.com/zsh-users/zsh-autosuggestions" \
             "$APP_PATH/zsh/oh-my-zsh/custom/plugins/zsh-autosuggestions"
 
   # add powerline10k theme
@@ -372,8 +372,6 @@ function install_zsh_rc() {
        "$HOME/.zshenv"
   lnif "$APP_PATH/zsh/zshrc" \
        "$HOME/.zshrc"
-  lnif "$APP_PATH/zsh/zshrc.local" \
-       "$HOME/.zshrc.local"
   lnif "$APP_PATH/zsh/p10k.zsh" \
        "$HOME/.p10k.zsh"
 
