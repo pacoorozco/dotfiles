@@ -374,6 +374,8 @@ function install_zsh_rc() {
        "$HOME/.zshrc"
   lnif "$APP_PATH/zsh/zshrc.local" \
        "$HOME/.zshrc.local"
+  lnif "$APP_PATH/zsh/p10k.zsh" \
+       "$HOME/.p10k.zsh"
 
   notice "Successfully installed zsh and oh-my-zsh."
   notice "You can add your own configs to ~/.zshrc.local , zsh will source them automatically"
