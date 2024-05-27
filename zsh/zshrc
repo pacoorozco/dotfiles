@@ -97,7 +97,7 @@ export EDITOR='vim'
 alias sail='[ -f sail ] && sh sail || sh vendor/bin/sail'
 
 # YAMS
-alias yams='docker run --rm -ti -v $HOME/.yams:/root/.yams -v $HOME/Downloads:/root/Downloads advyams/yams-cli'
+alias yams='docker run --rm -ti -v $HOME/.yams:/root/.yams -v $HOME/Downloads:/root/Downloads containers.mpi-internal.com/yams/yams-cli'
 
 # fnm
 export PATH="$PATH:$HOME/.local/bin:$HOME/.fnm"
