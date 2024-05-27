@@ -390,6 +390,7 @@ nohup.out
 
 # golang Cache
 go/pkg/mod/cache
+go/
 
 # ccache, remove cache but keep config
 .ccache/?
