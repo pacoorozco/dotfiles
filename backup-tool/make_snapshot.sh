@@ -211,10 +211,6 @@ function debug() {
   local _message="${*}"
   _alert debug
 }
-function input() {
-  local _message="${*}"
-  _alert info
-}
 
 # Show program version
 function show_version() {
