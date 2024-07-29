@@ -26,7 +26,7 @@
 # Configuration variables
 
 # Path to the encrypted filesystem
-ENCRYPTED_FILESYSTEM=~/Dropbox/Encrypted
+ENCRYPTED_FILESYSTEM=~/SynologyDrive/Encrypted
 
 # Folder to mount the filesystem in plain
 PLAIN_MOUNT_POINT=~/Private
