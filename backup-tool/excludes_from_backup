@@ -433,3 +433,4 @@ go/
 /.config/Slack
 /.zoom
 /.aws/credentials
+/SynologyDrive
