@@ -8,3 +8,6 @@ umask 077
 if [ -d "$HOME/bin" ] ; then
     PATH="$HOME/bin:$PATH"
 fi
+
+# set PATH so it include JetBrains scripts
+PATH="/opt/JetBrains/scripts:$PATH"
