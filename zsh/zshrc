@@ -101,16 +101,7 @@ alias yams='docker run --rm -ti -v $HOME/.yams:/root/.yams -v $HOME/Downloads:/r
 
 # fnm
 export PATH="$PATH:$HOME/.local/bin:$HOME/.fnm"
-eval "$(fnm env --use-on-cd)"
-
-export PYENV_ROOT="$HOME/.pyenv"
-command -v pyenv >/dev/null || export PATH="$PYENV_ROOT/bin:$PATH"
-eval "$(pyenv init -)"
-
-# ~~ Adevinta's One Command Line Tool Setup (v1) ~~
-# Added on 2024-01-26 14:28:31.816295 (UTC)
-# Comment out to disable shell-integration
-[[ ! -e ~/.adv/bin/adv-shell-integration-v1.sh ]] || source ~/.adv/bin/adv-shell-integration-v1.sh
+eval "$(fnm env --use-on-cd --shell zsh)"
 
 # Use a tty for gpg
 # When using Powerline10k, there's a know problem. See:
@@ -124,3 +115,13 @@ export GPG_TTY=$TTY
 
 # To customize prompt, run `p10k configure` or edit ~/.p10k.zsh.
 [[ ! -f ~/.p10k.zsh ]] || source ~/.p10k.zsh
+#
+# Install Ruby Gems to ~/gems
+export GEM_HOME="$HOME/gems"
+export PATH="$HOME/gems/bin:$PATH"
+
+# krew
+export PATH="${KREW_ROOT:-$HOME/.krew}/bin:$PATH"
+
+# k9s config folder
+export K9S_CONFIG_DIR="$HOME/.k9s"
