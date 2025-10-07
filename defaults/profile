@@ -11,3 +11,9 @@ fi
 
 # set PATH so it include JetBrains scripts
 PATH="/opt/JetBrains/scripts:$PATH"
+
+# set PATH so it include Go binary
+# # set PATH so it includes /usr/local/go/bin if it exists
+if [ -d "/usr/local/go/bin" ] ; then
+    PATH="/usr/local/go/bin:$PATH"
+fi
